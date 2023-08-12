@@ -137,8 +137,10 @@ main(int argc, char **argv)
 			do_ipv4();
 		else
 			do_ipv6();
-	} else
+	} else {
+		do_ipv4();
 		do_ipv6();
+	}
 
 	return 0;
 }
