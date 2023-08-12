@@ -32,7 +32,7 @@ decompress(FILE *infile, FILE *outfile)
 	int byte = EOF;
 
 	while ((byte = getc(infile)) != EOF) {
-		int nreps = 0;
+		int nrep = 0;
 		int nlit = 0;
 		int next = EOF;
 
@@ -44,13 +44,13 @@ decompress(FILE *infile, FILE *outfile)
 			if (byte == 128)
 				continue;
 
-			nreps = 1 + byte;
+			nrep = 1 + byte;
 			next = fgetc(infile);
 
 			if (next == EOF)
 				goto error;
 
-			while (nreps-- > 0)
+			while (nrep-- > 0)
 				fputc(next, outfile);
 		}
 
@@ -81,7 +81,7 @@ compress(FILE *infile, FILE *outfile)
 	int byte = EOF;
 
 	while ((byte = fgetc(infile)) != EOF) {
-		int nreps = 0;
+		int nrep = 0;
 		int nlit = 0;
 		int next = EOF;
 
@@ -97,43 +97,42 @@ compress(FILE *infile, FILE *outfile)
 
 		/* Repetitions. */
 		if (next == byte) {
-			nreps = 1;
+			nrep = 1;
 
-			while ((next = fgetc(infile)) == byte && nreps < 127)
-				++nreps;
+			while ((next = fgetc(infile)) == byte && nrep < 127)
+				++nrep;
 
-			fputc(-nreps, outfile);
+			fputc(-nrep, outfile);
 			fputc(byte, outfile);
 		}
 
 		/* Literal data. */
 		else {
-			char buffer[128] = { 0 };
-			int buffer_length = 0;
+			char buf[128] = { 0 };
+			int len = 0;
 
 			/* fill buffer with what we already know */
-			buffer[0] = byte;
-			buffer[1] = next;
-			buffer_length = 2;
+			buf[0] = byte;
+			buf[1] = next;
+			len = 2;
 			nlit = 1;
 
 			/* read until we encounter a repetition or EOF */
-			while ((next =
-				fgetc(infile)) != buffer[buffer_length - 1]
-			    && next != EOF && nlit < 127) {
+			while ((next = fgetc(infile)) != buf[len - 1] &&
+			    next != EOF && nlit < 127) {
 				++nlit;
-				buffer[buffer_length++] = next;
+				buf[len++] = next;
 			}
 
 			/* save repetition for the next run */
-			if (next == buffer[buffer_length - 1]) {
+			if (next == buf[len - 1]) {
 				ungetc(next, infile);
 				--nlit;
-				--buffer_length;
+				--len;
 			}
 
 			fputc(nlit, outfile);
-			fwrite(buffer, buffer_length, 1, outfile);
+			fwrite(buf, len, 1, outfile);
 		}
 
 		/*
@@ -154,8 +153,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	FILE *infile = NULL;
-	FILE *outfile = NULL;
+	FILE *infile = NULL, *outfile = NULL;
 
 	if (argc != 4)
 		usage();
