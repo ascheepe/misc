@@ -20,7 +20,7 @@ sysrand(void *dst, int nbytes)
 
  refill:
 	if (bufp == NULL) {
-		int fd, err;
+		int fd, nread;
 
 		fd = open("/dev/urandom", O_RDONLY);
 		if (fd == -1) {
@@ -28,13 +28,13 @@ sysrand(void *dst, int nbytes)
 			exit(1);
 		}
 
-		while ((err = read(fd, buf, sizeof(buf))) == -1 &&
-		    errno == EAGAIN)
+		while ((nread = read(fd, buf, sizeof(buf))) == -1 ||
+		    nread != sizeof(buf)) {
+			if (nread == -1 && errno != EAGAIN) {
+				perror("sysrand");
+				exit(1);
+			}
 			sleep(1);
-
-		if (err == -1) {
-			perror("sysrand");
-			exit(1);
 		}
 
 		close(fd);
