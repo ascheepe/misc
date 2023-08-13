@@ -18,10 +18,10 @@ sysrand(void *dst, int nbytes)
 	static uchar *bufp = NULL;
 	uchar *dstp = dst;
 
- refill:
 	if (bufp == NULL) {
 		int fd, nread;
 
+ fillbuf:
 		fd = open("/dev/urandom", O_RDONLY);
 		if (fd == -1) {
 			perror("sysrand");
@@ -53,7 +53,7 @@ sysrand(void *dst, int nbytes)
 		nbytes -= n;
 		bufp = NULL;
 
-		goto refill;
+		goto fillbuf;
 	}
 }
 
