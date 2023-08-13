@@ -15,10 +15,10 @@ static void
 sysrand(void *dst, int nbytes)
 {
 	static uchar buf[128];
-	static uchar *bufp = NULL;
+	static uchar *bufp = buf + sizeof(buf);
 	uchar *dstp = dst;
 
-	if (bufp == NULL) {
+	if (bufp >= buf + sizeof(buf)) {
 		int fd, nread;
 
  fillbuf:
@@ -42,7 +42,7 @@ sysrand(void *dst, int nbytes)
 		bufp = buf;
 	}
 
-	if ((bufp + nbytes) < (buf + sizeof(buf))) {
+	if (bufp + nbytes <= buf + sizeof(buf)) {
 		memcpy(dstp, bufp, nbytes);
 		bufp += nbytes;
 	} else {
@@ -51,7 +51,6 @@ sysrand(void *dst, int nbytes)
 		memcpy(dstp, bufp, n);
 		dstp += n;
 		nbytes -= n;
-		bufp = NULL;
 
 		goto fillbuf;
 	}
