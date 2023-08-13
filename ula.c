@@ -42,21 +42,19 @@ sysrand(void *dst, int nbytes)
 		bufp = buf;
 	}
 
-	while (nbytes > 0) {
-		if ((bufp + nbytes) < (buf + sizeof(buf))) {
-			memcpy(dstp, bufp, nbytes);
-			bufp += nbytes;
-			nbytes = 0;
-		} else {
-			int n = buf + sizeof(buf) - bufp;
+	if ((bufp + nbytes) < (buf + sizeof(buf))) {
+		memcpy(dstp, bufp, nbytes);
+		bufp += nbytes;
+		nbytes = 0;
+	} else {
+		int n = buf + sizeof(buf) - bufp;
 
-			memcpy(dstp, bufp, n);
-			dstp += n;
-			nbytes -= n;
-			bufp = NULL;
+		memcpy(dstp, bufp, n);
+		dstp += n;
+		nbytes -= n;
+		bufp = NULL;
 
-			goto refill;
-		}
+		goto refill;
 	}
 }
 
