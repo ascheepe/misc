@@ -106,7 +106,7 @@ do_ipv4(void)
 
 	addr += random_bits(32 - bits[i]);
 	print_ipv4(addr);
-	
+
 	printf("/%d\n", bits[i]);
 }
 
