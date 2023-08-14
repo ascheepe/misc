@@ -38,7 +38,7 @@ blkread(const char *filename, void *dst, size_t nbytes)
 static void
 sysrand(void *dst, int nbytes)
 {
-	static uchar buf[2];
+	static uchar buf[128];
 	static uchar *bufp = buf + sizeof(buf);
 	uchar *dstp = dst;
 
