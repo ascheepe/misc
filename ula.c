@@ -6,52 +6,60 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#define RANDOM_SOURCE "/dev/urandom"
+
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
 typedef uint addr4_t;
 
 static void
+blkread(const char *filename, void *dst, size_t nbytes)
+{
+	int fd, nread;
+
+	fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+		perror("blkread");
+		exit(1);
+	}
+
+	while ((nread = read(fd, dst, nbytes)) != (ssize_t)nbytes) {
+		if (nread == -1 && errno != EAGAIN) {
+			perror("blkread");
+			exit(1);
+		}
+		sleep(1);
+	}
+
+	close(fd);
+}
+
+static void
 sysrand(void *dst, int nbytes)
 {
-	static uchar buf[128];
+	static uchar buf[2];
 	static uchar *bufp = buf + sizeof(buf);
 	uchar *dstp = dst;
 
-	if (bufp >= buf + sizeof(buf)) {
-		int fd, nread;
-
- fillbuf:
-		fd = open("/dev/urandom", O_RDONLY);
-		if (fd == -1) {
-			perror("sysrand");
-			exit(1);
+	while (nbytes > 0) {
+		if (bufp >= buf + sizeof(buf)) {
+			blkread(RANDOM_SOURCE, buf, sizeof(buf));
+			bufp = buf;
 		}
 
-		while ((nread = read(fd, buf, sizeof(buf))) != sizeof(buf)) {
-			if (nread == -1 && errno != EAGAIN) {
-				perror("sysrand");
-				exit(1);
-			}
-			sleep(1);
+		if (bufp + nbytes <= buf + sizeof(buf)) {
+			memcpy(dstp, bufp, nbytes);
+			bufp += nbytes;
+			nbytes = 0;
+		} else {
+			int n = buf + sizeof(buf) - bufp;
+
+			memcpy(dstp, bufp, n);
+			dstp += n;
+			bufp += n;
+			nbytes -= n;
 		}
-
-		close(fd);
-
-		bufp = buf;
-	}
-
-	if (bufp + nbytes <= buf + sizeof(buf)) {
-		memcpy(dstp, bufp, nbytes);
-		bufp += nbytes;
-	} else {
-		int n = buf + sizeof(buf) - bufp;
-
-		memcpy(dstp, bufp, n);
-		dstp += n;
-		nbytes -= n;
-
-		goto fillbuf;
 	}
 }
 
