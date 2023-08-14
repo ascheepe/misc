@@ -28,8 +28,7 @@ sysrand(void *dst, int nbytes)
 			exit(1);
 		}
 
-		while ((nread = read(fd, buf, sizeof(buf))) == -1 ||
-		    nread != sizeof(buf)) {
+		while ((nread = read(fd, buf, sizeof(buf))) != sizeof(buf)) {
 			if (nread == -1 && errno != EAGAIN) {
 				perror("sysrand");
 				exit(1);
