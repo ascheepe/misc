@@ -16,7 +16,8 @@ typedef uint addr4_t;
 static void
 blkread(const char *filename, void *dst, size_t nbytes)
 {
-	int fd, nread;
+	ssize_t nread;
+	int fd;
 
 	fd = open(filename, O_RDONLY);
 	if (fd == -1) {
