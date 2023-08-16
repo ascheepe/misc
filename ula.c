@@ -107,7 +107,7 @@ do_ipv4(void)
 	addr4_t addr;
 	int i;
 
-	i = abs((int)random_bits(2) - 1);
+	i = random_bits(2) % 2;
 	addr = net[i];
 
 	addr += random_bits(32 - bits[i]);
