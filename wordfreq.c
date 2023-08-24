@@ -66,7 +66,7 @@ fnv1(const char *s)
 	return h;
 }
 
-#define hash_function(s) fnv1(s)
+#define hashfn(s) fnv1(s)
 
 struct hash_item {
 	const char *key;
@@ -130,7 +130,7 @@ hash_table_add(struct hash_table *ht, struct hash_item *item)
 {
 	size_t h;
 
-	h = hash_function(item->key) & (ht->size - 1);
+	h = hashfn(item->key) & (ht->size - 1);
 	item->next = ht->items[h];
 	ht->items[h] = item;
 	++ht->nitems;
@@ -142,7 +142,7 @@ hash_table_get(struct hash_table *ht, const char *key)
 	struct hash_item *item = NULL;
 	size_t h;
 
-	h = hash_function(key) & (ht->size - 1);
+	h = hashfn(key) & (ht->size - 1);
 	item = ht->items[h];
 
 	while (item != NULL && strcmp(item->key, key) != 0)
