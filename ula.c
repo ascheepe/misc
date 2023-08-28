@@ -13,7 +13,8 @@ typedef unsigned int uint;
 
 typedef uint ipv4_address;
 
-static void blocking_read(const char *filename, void *destination, size_t nbytes)
+static void blocking_read(const char *filename, void *destination,
+                          size_t nbytes)
 {
     ssize_t nread;
     int fd;
