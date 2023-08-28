@@ -1,3 +1,6 @@
+/*
+ * Generate random private ipv6 and ipv4 addresses.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,10 +12,14 @@
 #define RANDOM_SOURCE "/dev/urandom"
 
 typedef unsigned char uchar;
-typedef unsigned int uint;
+typedef unsigned int  uint;
 
 typedef uint ipv4_address;
 
+/*
+ * Read nbytes from a file into a destination buffer and be persistent
+ * about it.
+ */
 static void blocking_read(const char *filename, void *destination,
                           size_t nbytes)
 {
@@ -36,6 +43,9 @@ static void blocking_read(const char *filename, void *destination,
     close(fd);
 }
 
+/*
+ * Get nbytes of random data from the system.
+ */
 static void system_random(void *destination, int nbytes)
 {
     static uchar buffer[128];
@@ -43,16 +53,20 @@ static void system_random(void *destination, int nbytes)
     uchar *destination_position = destination;
 
     while (nbytes > 0) {
+
+        /* Buffer is full so refill it and reset the position. */
         if (buffer_position >= buffer + sizeof(buffer)) {
             blocking_read(RANDOM_SOURCE, buffer, sizeof(buffer));
             buffer_position = buffer;
         }
 
         if (buffer_position + nbytes <= buffer + sizeof(buffer)) {
+            /* nbytes can be taken from the buffer. */
             memcpy(destination_position, buffer_position, nbytes);
             buffer_position += nbytes;
             nbytes = 0;
         } else {
+            /* nbytes can't be taken, get what we can though. */
             int n = buffer + sizeof(buffer) - buffer_position;
 
             memcpy(destination_position, buffer_position, n);
@@ -63,6 +77,9 @@ static void system_random(void *destination, int nbytes)
     }
 }
 
+/*
+ * Get nbits of random bits.
+ */
 static uint random_bits(int nbits)
 {
     uint result = 0;
@@ -73,12 +90,14 @@ static uint random_bits(int nbits)
         exit(1);
     }
 
+    /* Round to whole bytes. */
     if (nbits - nbytes * 8 > 0) {
         ++nbytes;
     }
 
     system_random(&result, nbytes);
 
+    /* Drop the extra bits from rounding. */
     nbits -= nbytes * 8;
     if (nbits < 0) {
         result >>= abs(nbits);
@@ -87,7 +106,7 @@ static uint random_bits(int nbits)
     return result;
 }
 
-static void print_ipv4(ipv4_address address)
+static void print_ipv4_address(ipv4_address address)
 {
     int shift = 24;
 
@@ -110,7 +129,7 @@ static void do_ipv4(void)
     address = net[pick];
 
     address += random_bits(32 - bits[pick]);
-    print_ipv4(address);
+    print_ipv4_address(address);
 
     printf("/%d\n", bits[pick]);
 }
