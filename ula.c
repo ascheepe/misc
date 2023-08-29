@@ -114,7 +114,7 @@ static void do_ipv4(void)
     int shift;
     int pick;
 
-    pick = random_bits(2) % 2;
+    pick = abs((int)random_bits(2) - 1);
     address = net[pick];
 
     address += random_bits(32 - bits[pick]);
