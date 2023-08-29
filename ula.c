@@ -50,8 +50,8 @@ static void system_random(void *destination, int nbytes)
 {
     static uchar buffer[128];
     static uchar *buffer_position = buffer + sizeof(buffer);
-    uchar *destination_position = destination;
     uchar *buffer_end = buffer + sizeof(buffer);
+    uchar *destination_position = destination;
 
     while (nbytes > 0) {
         /* Buffer is full so refill it and reset the position. */
