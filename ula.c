@@ -53,7 +53,6 @@ static void system_random(void *destination, int nbytes)
     uchar *destination_position = destination;
 
     while (nbytes > 0) {
-
         /* Buffer is full so refill it and reset the position. */
         if (buffer_position >= buffer + sizeof(buffer)) {
             blocking_read(RANDOM_SOURCE, buffer, sizeof(buffer));
