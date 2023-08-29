@@ -51,22 +51,23 @@ static void system_random(void *destination, int nbytes)
     static uchar buffer[128];
     static uchar *buffer_position = buffer + sizeof(buffer);
     uchar *destination_position = destination;
+    uchar *buffer_end = buffer + sizeof(buffer);
 
     while (nbytes > 0) {
         /* Buffer is full so refill it and reset the position. */
-        if (buffer_position >= buffer + sizeof(buffer)) {
+        if (buffer_position >= buffer_end) {
             blocking_read(RANDOM_SOURCE, buffer, sizeof(buffer));
             buffer_position = buffer;
         }
 
-        if (buffer_position + nbytes <= buffer + sizeof(buffer)) {
+        if (buffer_position + nbytes <= buffer_end) {
             /* nbytes can be taken from the buffer. */
             memcpy(destination_position, buffer_position, nbytes);
             buffer_position += nbytes;
             nbytes = 0;
         } else {
             /* nbytes can't be taken, get what we can though. */
-            int n = buffer + sizeof(buffer) - buffer_position;
+            int n = buffer_end - buffer_position;
 
             memcpy(destination_position, buffer_position, n);
             destination_position += n;
