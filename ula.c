@@ -108,11 +108,10 @@ static uint random_bits(int nbits)
 
 static void print_ipv4_address(ipv4_address address)
 {
-    int shift = 24;
+    int shift;
 
-    while (shift > 0) {
+    for (shift = 24; shift > 0; shift -= 8) {
         printf("%d.", (address >> shift) & 0xff);
-        shift -= 8;
     }
 
     printf("%d", address & 0xff);
