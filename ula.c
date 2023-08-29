@@ -106,31 +106,22 @@ static uint random_bits(int nbits)
     return result;
 }
 
-static void print_ipv4_address(ipv4_address address)
-{
-    int shift;
-
-    for (shift = 24; shift > 0; shift -= 8) {
-        printf("%d.", (address >> shift) & 0xff);
-    }
-
-    printf("%d", address & 0xff);
-}
-
 static void do_ipv4(void)
 {
     ipv4_address net[] = { 0x0a000000, 0xac100000, 0xc0a80000 };
     int bits[] = { 8, 12, 16 };
     ipv4_address address;
+    int shift;
     int pick;
 
     pick = random_bits(2) % 2;
     address = net[pick];
 
     address += random_bits(32 - bits[pick]);
-    print_ipv4_address(address);
-
-    printf("/%d\n", bits[pick]);
+    for (shift = 24; shift > 0; shift -= 8) {
+        printf("%d.", (address >> shift) & 0xff);
+    }
+    printf("%d/%d\n", address & 0xff, bits[pick]);
 }
 
 static void do_ipv6(void)
