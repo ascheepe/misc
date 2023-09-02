@@ -67,12 +67,12 @@ static void system_random(void *destination, int nbytes)
             nbytes = 0;
         } else {
             /* nbytes can't be taken, get what we can though. */
-            int left = buffer_end - buffer_position;
+            int bytes_left = buffer_end - buffer_position;
 
-            memcpy(destination_position, buffer_position, left);
-            destination_position += left;
-            buffer_position += left;
-            nbytes -= left;
+            memcpy(destination_position, buffer_position, bytes_left);
+            destination_position += bytes_left;
+            buffer_position += bytes_left;
+            nbytes -= bytes_left;
         }
     }
 }
