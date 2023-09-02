@@ -54,7 +54,7 @@ static void system_random(void *destination, int nbytes)
     uchar *destination_position = destination;
 
     while (nbytes > 0) {
-        /* Buffer is full so refill it and reset the position. */
+        /* Buffer is empty so refill it and reset the position. */
         if (buffer_position >= buffer_end) {
             blocking_read(RANDOM_SOURCE, buffer, sizeof(buffer));
             buffer_position = buffer;
@@ -67,12 +67,12 @@ static void system_random(void *destination, int nbytes)
             nbytes = 0;
         } else {
             /* nbytes can't be taken, get what we can though. */
-            int n = buffer_end - buffer_position;
+            int left = buffer_end - buffer_position;
 
-            memcpy(destination_position, buffer_position, n);
-            destination_position += n;
-            buffer_position += n;
-            nbytes -= n;
+            memcpy(destination_position, buffer_position, left);
+            destination_position += left;
+            buffer_position += left;
+            nbytes -= left;
         }
     }
 }
