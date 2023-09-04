@@ -26,162 +26,162 @@
  * -1 to -127: one byte of data repeated (1 - n) times
  * -128      : no operation, next byte is header byte
  */
-void
-decompress(FILE *infile, FILE *outfile)
+void decompress(FILE *input_file, FILE *output_file)
 {
-	int byte = EOF;
+    int byte = EOF;
 
-	while ((byte = getc(infile)) != EOF) {
-		int nrep = 0;
-		int nlit = 0;
-		int next = EOF;
+    while ((byte = getc(input_file)) != EOF) {
+        int next_byte = EOF;
+        int count = 0;
 
-		/* Repetitions. */
-		if (byte > 128) {
-			byte = 256 - byte;
+        /* Repetitions. */
+        if (byte > 128) {
+            byte = 256 - byte;
 
-			/* no-op. */
-			if (byte == 128)
-				continue;
+            /* no-op. */
+            if (byte == 128) {
+                continue;
+            }
 
-			nrep = 1 + byte;
-			next = fgetc(infile);
+            count = 1 + byte;
+            next_byte = fgetc(input_file);
 
-			if (next == EOF)
-				goto error;
+            if (next_byte == EOF) {
+                goto error;
+            }
 
-			while (nrep-- > 0)
-				fputc(next, outfile);
-		}
+            while (count-- > 0) {
+                fputc(next_byte, output_file);
+            }
+        }
 
-		/* Literal data. */
-		else {
-			nlit = 1 + byte;
+        /* Literal data. */
+        else {
+            count = 1 + byte;
 
-			while (nlit-- > 0) {
-				next = fgetc(infile);
+            while (count-- > 0) {
+                next_byte = fgetc(input_file);
 
-				if (next == EOF)
-					goto error;
+                if (next_byte == EOF) {
+                    goto error;
+                }
 
-				fputc(next, outfile);
-			}
-		}
-	}
+                fputc(next_byte, output_file);
+            }
+        }
+    }
 
-	return;
+    return;
 
- error:
-	fprintf(stderr, "unexpected input\n");
+  error:
+    fprintf(stderr, "unexpected input\n");
 }
 
-void
-compress(FILE *infile, FILE *outfile)
+void compress(FILE *input_file, FILE *output_file)
 {
-	int byte = EOF;
+    int byte = EOF;
 
-	while ((byte = fgetc(infile)) != EOF) {
-		int nrep = 0;
-		int nlit = 0;
-		int next = EOF;
+    while ((byte = fgetc(input_file)) != EOF) {
+        int next_byte = EOF;
+        int count = 0;
 
-		next = fgetc(infile);
+        next_byte = fgetc(input_file);
 
-		/* output the last byte if at EOF */
-		if (next == EOF) {
-			fputc(0, outfile);
-			fputc(byte, outfile);
+        /* output the last byte if at EOF */
+        if (next_byte == EOF) {
+            fputc(0, output_file);
+            fputc(byte, output_file);
 
-			return;
-		}
+            return;
+        }
 
-		/* Repetitions. */
-		if (next == byte) {
-			nrep = 1;
+        /* Repetitions. */
+        if (next_byte == byte) {
+            count = 1;
 
-			while ((next = fgetc(infile)) == byte && nrep < 127)
-				++nrep;
+            while ((next_byte = fgetc(input_file)) == byte
+                   && count < 127) {
+                ++count;
+            }
 
-			fputc(-nrep, outfile);
-			fputc(byte, outfile);
-		}
+            fputc(-count, output_file);
+            fputc(byte, output_file);
+        }
 
-		/* Literal data. */
-		else {
-			char buf[128] = { 0 };
-			int len = 0;
+        /* Literal data. */
+        else {
+            char buffer[128] = { 0 };
 
-			/* fill buffer with what we already know */
-			buf[0] = byte;
-			buf[1] = next;
-			len = 2;
-			nlit = 1;
+            /* fill buffer with what we already know */
+            buffer[0] = byte;
+            buffer[1] = next_byte;
+            count = 1;
 
-			/* read until we encounter a repetition or EOF */
-			while ((next = fgetc(infile)) != buf[len - 1] &&
-			    next != EOF && nlit < 127) {
-				++nlit;
-				buf[len++] = next;
-			}
+            /* read until we encounter a repetition or EOF */
+            while ((next_byte = fgetc(input_file)) != buffer[count]
+                   && next_byte != EOF
+                   && count < 127) {
+                ++count;
+                buffer[count] = next_byte;
+            }
 
-			/* save repetition for the next run */
-			if (next == buf[len - 1]) {
-				ungetc(next, infile);
-				--nlit;
-				--len;
-			}
+            /* save repetition for the next run */
+            if (next_byte == buffer[count]) {
+                ungetc(next_byte, input_file);
+                --count;
+            }
 
-			fputc(nlit, outfile);
-			fwrite(buf, len, 1, outfile);
-		}
+            fputc(count, output_file);
+            fwrite(buffer, count + 1, 1, output_file);
+        }
 
-		/*
-		 * Either way unread the last read byte
-		 * since it starts a new header
-		 */
-		ungetc(next, infile);
-	}
+        /*
+         * Either way unread the last read byte
+         * since it starts a new header
+         */
+        ungetc(next_byte, input_file);
+    }
 }
 
-static void
-usage(void)
+static void usage(void)
 {
-	fprintf(stderr, "usage: rle -cd infile outfile\n");
-	exit(1);
+    fprintf(stderr, "usage: rle -cd input_file output_file\n");
+    exit(1);
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-	FILE *infile = NULL, *outfile = NULL;
+    FILE *input_file = NULL;
+    FILE *output_file = NULL;
 
-	if (argc != 4)
-		usage();
+    if (argc != 4) {
+        usage();
+    }
 
-	infile = fopen(argv[2], "rb");
-	outfile = fopen(argv[3], "wb");
+    input_file = fopen(argv[2], "rb");
+    output_file = fopen(argv[3], "wb");
 
-	if (infile == NULL || outfile == NULL) {
-		fprintf(stderr, "error opening file(s)\n");
-		exit(1);
-	}
+    if (input_file == NULL || output_file == NULL) {
+        fprintf(stderr, "error opening file(s)\n");
+        exit(1);
+    }
 
-	switch (argv[1][1]) {
-	case 'C':
-	case 'c':
-		compress(infile, outfile);
-		break;
+    switch (argv[1][1]) {
+        case 'C':
+        case 'c':
+            compress(input_file, output_file);
+            break;
 
-	case 'D':
-	case 'd':
-		decompress(infile, outfile);
-		break;
+        case 'D':
+        case 'd':
+            decompress(input_file, output_file);
+            break;
 
-	default:
-		usage();
-	}
+        default:
+            usage();
+    }
 
-	fclose(infile);
-	fclose(outfile);
-	return 0;
+    fclose(input_file);
+    fclose(output_file);
+    return 0;
 }
