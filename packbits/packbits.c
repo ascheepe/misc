@@ -1,187 +1,129 @@
-/*
- * Copyright (C) 2021 Axel Scheepers
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
-/*
- * RLE Header (packbits variant)
- *
- *  0 to  127: (1 + n) literal bytes of data
- * -1 to -127: one byte of data repeated (1 - n) times
- * -128      : no operation, next byte is header byte
- */
-void decompress(FILE *input_file, FILE *output_file)
+void
+die(char *fmt, ...)
 {
-    int byte = EOF;
+	va_list ap;
 
-    while ((byte = getc(input_file)) != EOF) {
-        int next_byte = EOF;
-        int count = 0;
+	va_start(ap, fmt);
 
-        /* Repetitions. */
-        if (byte > 128) {
-            byte = 256 - byte;
+	if (fmt && fmt[strlen(fmt) - 1] == ':') {
+		vfprintf(stderr, "%s: ", ap);
+		perror(NULL);
+	} else
+		fprintf(stderr, "%s\n", fmt);
 
-            /* no-op. */
-            if (byte == 128) {
-                continue;
-            }
+	va_end(ap);
 
-            count = 1 + byte;
-            next_byte = fgetc(input_file);
-
-            if (next_byte == EOF) {
-                goto error;
-            }
-
-            while (count-- > 0) {
-                fputc(next_byte, output_file);
-            }
-        }
-
-        /* Literal data. */
-        else {
-            count = 1 + byte;
-
-            while (count-- > 0) {
-                next_byte = fgetc(input_file);
-
-                if (next_byte == EOF) {
-                    goto error;
-                }
-
-                fputc(next_byte, output_file);
-            }
-        }
-    }
-
-    return;
-
-  error:
-    fprintf(stderr, "unexpected input\n");
+	exit(1);
 }
 
-void compress(FILE *input_file, FILE *output_file)
+int
+compress(FILE *infile, FILE *outfile)
 {
-    int byte = EOF;
+	int ch, next, cnt;
 
-    while ((byte = fgetc(input_file)) != EOF) {
-        int next_byte = EOF;
-        int count = 0;
+	while ((ch = fgetc(infile)) != EOF) {
+		next = fgetc(infile);
 
-        next_byte = fgetc(input_file);
+		if (next == EOF) {
+			fputc(0, outfile);
+			fputc(ch, outfile);
+			break;
+		}
 
-        /* output the last byte if at EOF */
-        if (next_byte == EOF) {
-            fputc(0, output_file);
-            fputc(byte, output_file);
+		if (next == ch) {
+			cnt = 2;
 
-            return;
-        }
+			while ((next = fgetc(infile)) == ch && cnt < 129)
+				++cnt;
 
-        /* Repetitions. */
-        if (next_byte == byte) {
-            count = 1;
+			fputc(-(cnt - 1), outfile);
+			fputc(ch, outfile);
+		} else {
+			unsigned char buf[128];
 
-            while ((next_byte = fgetc(input_file)) == byte
-                   && count < 127) {
-                ++count;
-            }
+			buf[0] = ch;
+			buf[1] = next;
+			cnt = 2;
 
-            fputc(-count, output_file);
-            fputc(byte, output_file);
-        }
+			while ((next = fgetc(infile)) != buf[cnt - 1]
+			    && next != EOF && cnt < 128)
+				buf[cnt++] = next;
 
-        /* Literal data. */
-        else {
-            char buffer[128] = { 0 };
+			if (next == buf[cnt - 1]) {
+				ungetc(next, infile);
+				--cnt;
+			}
 
-            /* fill buffer with what we already know */
-            buffer[0] = byte;
-            buffer[1] = next_byte;
-            count = 1;
+			fputc(cnt - 1, outfile);
+			fwrite(buf, cnt, 1, outfile);
+		}
+		ungetc(next, infile);
+	}
 
-            /* read until we encounter a repetition or EOF */
-            while ((next_byte = fgetc(input_file)) != buffer[count]
-                   && next_byte != EOF
-                   && count < 127) {
-                ++count;
-                buffer[count] = next_byte;
-            }
-
-            /* save repetition for the next run */
-            if (next_byte == buffer[count]) {
-                ungetc(next_byte, input_file);
-                --count;
-            }
-
-            fputc(count, output_file);
-            fwrite(buffer, count + 1, 1, output_file);
-        }
-
-        /*
-         * Either way unread the last read byte
-         * since it starts a new header
-         */
-        ungetc(next_byte, input_file);
-    }
+	return 0;
 }
 
-static void usage(void)
+int
+decompress(FILE *infile, FILE *outfile)
 {
-    fprintf(stderr, "usage: rle -cd input_file output_file\n");
-    exit(1);
+	int cnt;
+
+	while ((cnt = fgetc(infile)) != EOF) {
+		if (cnt > 127) {
+			int ch;
+
+			cnt = 257 - cnt;
+			ch = fgetc(infile);
+			while (cnt-- > 0)
+				fputc(ch, outfile);
+		} else {
+			++cnt;
+			while (cnt-- > 0) {
+				int ch;
+
+				ch = fgetc(infile);
+				fputc(ch, outfile);
+			}
+		}
+	}
+
+	return 0;
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-    FILE *input_file = NULL;
-    FILE *output_file = NULL;
+	FILE *infile, *outfile;
 
-    if (argc != 4) {
-        usage();
-    }
+	if (argc != 4 || argv[1][1] == '\0')
+		die("args");
 
-    input_file = fopen(argv[2], "rb");
-    output_file = fopen(argv[3], "wb");
+	infile = fopen(argv[2], "rb");
+	if (infile == NULL)
+		die("%s:", argv[2]);
 
-    if (input_file == NULL || output_file == NULL) {
-        fprintf(stderr, "error opening file(s)\n");
-        exit(1);
-    }
+	outfile = fopen(argv[3], "wb");
+	if (outfile == NULL)
+		die("%s:", argv[3]);
 
-    switch (argv[1][1]) {
-        case 'C':
-        case 'c':
-            compress(input_file, output_file);
-            break;
+	switch (argv[1][1]) {
+	case 'c':
+	case 'C':
+		compress(infile, outfile);
+		break;
+	case 'd':
+	case 'D':
+		decompress(infile, outfile);
+		break;
+	default:
+		die("args");
+	}
 
-        case 'D':
-        case 'd':
-            decompress(input_file, output_file);
-            break;
-
-        default:
-            usage();
-    }
-
-    fclose(input_file);
-    fclose(output_file);
-    return 0;
+	return 0;
 }
+
