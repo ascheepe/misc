@@ -22,6 +22,42 @@ die(char *fmt, ...)
 }
 
 int
+xfputc(int c, FILE *f)
+{
+	int r;
+
+	r = fputc(c, f);
+	if (r == EOF)
+		die("xfputc:");
+
+	return c;
+}
+
+size_t
+xfwrite(const void *p, size_t size, size_t nmemb, FILE *f)
+{
+	size_t r;
+
+	r = fwrite(p, size, nmemb, f);
+	if (r != nmemb)
+		die("xfwrite:");
+
+	return nmemb;
+}
+
+FILE *
+xfopen(const char *pathname, const char *mode)
+{
+	FILE *f;
+
+	f = fopen(pathname, mode);
+	if (f == NULL)
+		die("xfopen(%s, %s):", pathname, mode);
+
+	return f;
+}
+
+int
 compress(FILE *infile, FILE *outfile)
 {
 	int ch, next, cnt;
@@ -30,8 +66,9 @@ compress(FILE *infile, FILE *outfile)
 		next = fgetc(infile);
 
 		if (next == EOF) {
-			fputc(0, outfile);
-			fputc(ch, outfile);
+			xfputc(0, outfile);
+			xfputc(ch, outfile);
+
 			break;
 		}
 
@@ -41,8 +78,8 @@ compress(FILE *infile, FILE *outfile)
 			while ((next = fgetc(infile)) == ch && cnt < 129)
 				++cnt;
 
-			fputc(-(cnt - 1), outfile);
-			fputc(ch, outfile);
+			xfputc(-(cnt - 1), outfile);
+			xfputc(ch, outfile);
 		} else {
 			unsigned char buf[128];
 
@@ -59,8 +96,8 @@ compress(FILE *infile, FILE *outfile)
 				--cnt;
 			}
 
-			fputc(cnt - 1, outfile);
-			fwrite(buf, cnt, 1, outfile);
+			xfputc(cnt - 1, outfile);
+			xfwrite(buf, cnt, 1, outfile);
 		}
 		ungetc(next, infile);
 	}
@@ -80,14 +117,14 @@ decompress(FILE *infile, FILE *outfile)
 			cnt = 257 - cnt;
 			ch = fgetc(infile);
 			while (cnt-- > 0)
-				fputc(ch, outfile);
+				xfputc(ch, outfile);
 		} else {
 			++cnt;
 			while (cnt-- > 0) {
 				int ch;
 
 				ch = fgetc(infile);
-				fputc(ch, outfile);
+				xfputc(ch, outfile);
 			}
 		}
 	}
@@ -103,13 +140,8 @@ main(int argc, char **argv)
 	if (argc != 4 || argv[1][1] == '\0')
 		die("args");
 
-	infile = fopen(argv[2], "rb");
-	if (infile == NULL)
-		die("%s:", argv[2]);
-
-	outfile = fopen(argv[3], "wb");
-	if (outfile == NULL)
-		die("%s:", argv[3]);
+	infile = xfopen(argv[2], "rb");
+	outfile = xfopen(argv[3], "wb");
 
 	switch (argv[1][1]) {
 	case 'c':
@@ -123,6 +155,9 @@ main(int argc, char **argv)
 	default:
 		die("args");
 	}
+
+	fclose(infile);
+	fclose(outfile);
 
 	return 0;
 }
