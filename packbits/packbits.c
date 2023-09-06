@@ -28,7 +28,7 @@ xfputc(int c, FILE *f)
 
 	r = fputc(c, f);
 	if (r == EOF)
-		die("xfputc:");
+		die("fputc:");
 
 	return c;
 }
@@ -40,7 +40,7 @@ xfwrite(const void *p, size_t size, size_t nmemb, FILE *f)
 
 	r = fwrite(p, size, nmemb, f);
 	if (r != nmemb)
-		die("xfwrite:");
+		die("fwrite:");
 
 	return nmemb;
 }
@@ -52,7 +52,7 @@ xfopen(const char *pathname, const char *mode)
 
 	f = fopen(pathname, mode);
 	if (f == NULL)
-		die("xfopen(%s, %s):", pathname, mode);
+		die("fopen: %s:", pathname);
 
 	return f;
 }
