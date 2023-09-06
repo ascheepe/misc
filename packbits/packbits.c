@@ -24,25 +24,25 @@ die(char *fmt, ...)
 int
 xfputc(int c, FILE *f)
 {
-	int r;
+	int cc;
 
-	r = fputc(c, f);
-	if (r == EOF)
+	cc = fputc(c, f);
+	if (cc == EOF)
 		die("fputc:");
 
-	return c;
+	return cc;
 }
 
 size_t
 xfwrite(const void *p, size_t size, size_t nmemb, FILE *f)
 {
-	size_t r;
+	size_t nwritten;
 
-	r = fwrite(p, size, nmemb, f);
-	if (r != nmemb)
+	nwritten = fwrite(p, size, nmemb, f);
+	if (nwritten != nmemb)
 		die("fwrite:");
 
-	return nmemb;
+	return nwritten;
 }
 
 FILE *
@@ -60,7 +60,7 @@ xfopen(const char *pathname, const char *mode)
 int
 compress(FILE *infile, FILE *outfile)
 {
-	int ch, next, cnt;
+	int ch, next, count;
 
 	while ((ch = fgetc(infile)) != EOF) {
 		next = fgetc(infile);
@@ -73,31 +73,31 @@ compress(FILE *infile, FILE *outfile)
 		}
 
 		if (next == ch) {
-			cnt = 2;
+			count = 2;
 
-			while ((next = fgetc(infile)) == ch && cnt < 129)
-				++cnt;
+			while ((next = fgetc(infile)) == ch && count < 129)
+				++count;
 
-			xfputc(-(cnt - 1), outfile);
+			xfputc(-(count - 1), outfile);
 			xfputc(ch, outfile);
 		} else {
 			unsigned char buf[128];
 
 			buf[0] = ch;
 			buf[1] = next;
-			cnt = 2;
+			count = 2;
 
-			while ((next = fgetc(infile)) != buf[cnt - 1]
-			    && next != EOF && cnt < 128)
-				buf[cnt++] = next;
+			while ((next = fgetc(infile)) != buf[count - 1]
+			    && next != EOF && count < 128)
+				buf[count++] = next;
 
-			if (next == buf[cnt - 1]) {
+			if (next == buf[count - 1]) {
 				ungetc(next, infile);
-				--cnt;
+				--count;
 			}
 
-			xfputc(cnt - 1, outfile);
-			xfwrite(buf, cnt, 1, outfile);
+			xfputc(count - 1, outfile);
+			xfwrite(buf, count, 1, outfile);
 		}
 		ungetc(next, infile);
 	}
@@ -108,19 +108,19 @@ compress(FILE *infile, FILE *outfile)
 int
 decompress(FILE *infile, FILE *outfile)
 {
-	int cnt;
+	int count;
 
-	while ((cnt = fgetc(infile)) != EOF) {
-		if (cnt > 127) {
+	while ((count = fgetc(infile)) != EOF) {
+		if (count > 127) {
 			int ch;
 
-			cnt = 257 - cnt;
+			count = 257 - count;
 			ch = fgetc(infile);
-			while (cnt-- > 0)
+			while (count-- > 0)
 				xfputc(ch, outfile);
 		} else {
-			++cnt;
-			while (cnt-- > 0) {
+			++count;
+			while (count-- > 0) {
 				int ch;
 
 				ch = fgetc(infile);
@@ -161,4 +161,3 @@ main(int argc, char **argv)
 
 	return 0;
 }
-
