@@ -12,149 +12,148 @@
 #define RANDOM_SOURCE "/dev/urandom"
 
 typedef unsigned char uchar;
-typedef unsigned int  uint;
+typedef unsigned int uint;
 
-typedef uint ipv4_address;
+typedef uint ipv4_addr;
 
 /*
- * Read nbytes from a file into a destination buffer and be persistent
+ * Read nbytes from a file into a dst buf and be persistent
  * about it.
  */
-static void blocking_read(const char *filename, void *destination,
-                          size_t nbytes)
+static void
+blkread(const char *filename, void *dst, size_t size)
 {
-    ssize_t nread;
-    int fd;
+	ssize_t nread;
+	int fd;
 
-    fd = open(filename, O_RDONLY);
-    if (fd == -1) {
-        perror("blocking_read");
-        exit(1);
-    }
+	fd = open(filename, O_RDONLY);
+	if (fd == -1) {
+		perror("blkread");
+		exit(1);
+	}
 
-    while ((nread = read(fd, destination, nbytes)) != (ssize_t) nbytes) {
-        if (nread == -1 && errno != EAGAIN) {
-            perror("blocking_read");
-            exit(1);
-        }
-        sleep(1);
-    }
+	while ((nread = read(fd, dst, size)) != (ssize_t) size) {
+		if (nread == -1 && errno != EAGAIN) {
+			perror("blkread");
+			exit(1);
+		}
+		sleep(1);
+	}
 
-    close(fd);
+	close(fd);
 }
 
 /*
  * Get nbytes of random data from the system.
  */
-static void system_random(void *destination, int nbytes)
+static void
+sysrand(void *dst, int size)
 {
-    static uchar buffer[128];
-    static uchar *buffer_position = buffer + sizeof(buffer);
-    uchar *buffer_end = buffer + sizeof(buffer);
-    uchar *destination_position = destination;
+	static uchar buf[128], *bufp;
+	uchar *dstp;
 
-    while (nbytes > 0) {
-        if (buffer_position >= buffer_end) {
-            /* Buffer is empty so refill it and reset the position. */
-            blocking_read(RANDOM_SOURCE, buffer, sizeof(buffer));
-            buffer_position = buffer;
-        }
+	dstp = dst;
+	bufp = buf + sizeof(buf);
 
-        if (buffer_position + nbytes <= buffer_end) {
-            /* nbytes can be taken from the buffer. */
-            memcpy(destination_position, buffer_position, nbytes);
-            buffer_position += nbytes;
-            nbytes = 0;
-        } else {
-            /* nbytes can't be taken, get what we can though. */
-            int bytes_left = buffer_end - buffer_position;
+	while (size > 0) {
+		if (bufp >= buf + sizeof(buf)) {
+			blkread(RANDOM_SOURCE, buf, sizeof(buf));
+			bufp = buf;
+		}
 
-            memcpy(destination_position, buffer_position, bytes_left);
-            destination_position += bytes_left;
-            buffer_position += bytes_left;
-            nbytes -= bytes_left;
-        }
-    }
+		if (bufp + size <= buf + sizeof(buf)) {
+			memcpy(dstp, bufp, size);
+			bufp += size;
+			size = 0;
+		} else {
+			int n = buf + sizeof(buf) - bufp;
+
+			memcpy(dstp, bufp, n);
+			dstp += n;
+			bufp += n;
+			size -= n;
+		}
+	}
 }
 
 /*
  * Get nbits of random bits.
  */
-static uint random_bits(int nbits)
+static uint
+random_bits(int nbits)
 {
-    uint result = 0;
-    int nbytes = nbits / 8;
+	int nbytes = nbits / 8;
+	uint r = 0;
 
-    if ((uint) nbits > (sizeof(uint) * 8)) {
-        fprintf(stderr, "too many bits requested.\n");
-        exit(1);
-    }
+	if ((uint) nbits > (sizeof(uint) * 8)) {
+		fprintf(stderr, "too many bits requested.\n");
+		exit(1);
+	}
 
-    /* Round to whole bytes. */
-    if (nbits - nbytes * 8 > 0) {
-        ++nbytes;
-    }
+	/* Round to whole bytes. */
+	if (nbits - nbytes * 8 > 0)
+		++nbytes;
 
-    system_random(&result, nbytes);
+	sysrand(&r, nbytes);
 
-    /* Drop the extra bits from rounding. */
-    nbits -= nbytes * 8;
-    if (nbits < 0) {
-        result >>= abs(nbits);
-    }
+	/* Drop the extra bits from rounding. */
+	nbits -= nbytes * 8;
+	if (nbits < 0)
+		r >>= abs(nbits);
 
-    return result;
+	return r;
 }
 
-static void do_ipv4(void)
+static void
+do_ipv4(void)
 {
-    ipv4_address net[] = { 0x0a000000, 0xac100000, 0xc0a80000 };
-    int bits[] = { 8, 12, 16 };
-    ipv4_address address;
-    int shift;
-    int pick;
+	ipv4_addr net[] = { 0x0a000000, 0xac100000, 0xc0a80000 };
+	int bits[] = { 8, 12, 16 };
+	ipv4_addr addr;
+	int shift;
+	int pick;
 
-    pick = abs((int)random_bits(2) - 1);
-    address = net[pick];
+	pick = abs((int)random_bits(2) - 1);
+	addr = net[pick];
 
-    address += random_bits(32 - bits[pick]);
-    for (shift = 24; shift > 0; shift -= 8) {
-        printf("%d.", (address >> shift) & 0xff);
-    }
-    printf("%d/%d\n", address & 0xff, bits[pick]);
+	addr += random_bits(32 - bits[pick]);
+	for (shift = 24; shift > 0; shift -= 8)
+		printf("%d.", (addr >> shift) & 0xff);
+	printf("%d/%d\n", addr & 0xff, bits[pick]);
 }
 
-static void do_ipv6(void)
+static void
+do_ipv6(void)
 {
-    int i;
+	int i;
 
-    printf("fd%02x", random_bits(8));
-    for (i = 0; i < 7; ++i) {
-        printf(":%x", random_bits(16));
-    }
-    printf("/64\n");
+	printf("fd%02x", random_bits(8));
+	for (i = 0; i < 7; ++i)
+		printf(":%x", random_bits(16));
+	printf("/64\n");
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-    if ((sizeof(ipv4_address) * 8) < 32) {
-        fprintf(stderr, "change ipv4_address in source.\n");
-        return 1;
-    }
+	if ((sizeof(ipv4_addr) * 8) < 32) {
+		fprintf(stderr, "change ipv4_addr in source.\n");
+		return 1;
+	}
 
-    if (argc > 1) {
-        if (strcmp(argv[1], "-4") == 0) {
-            do_ipv4();
-        } else if (strcmp(argv[1], "-6") == 0) {
-            do_ipv6();
-        } else {
-            puts("usage: ula [-4|-6]");
-            return 1;
-        }
-    } else {
-        do_ipv4();
-        do_ipv6();
-    }
+	if (argc > 1) {
+		if (strcmp(argv[1], "-4") == 0)
+			do_ipv4();
+		else if (strcmp(argv[1], "-6") == 0)
+			do_ipv6();
+		else {
+			puts("usage: ula [-4|-6]");
+			return 1;
+		}
+	} else {
+		do_ipv4();
+		do_ipv6();
+	}
 
-    return 0;
+	return 0;
 }
