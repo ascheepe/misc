@@ -64,7 +64,7 @@ sysrand(void *dst, int size)
 		if (bufp + size <= buf + sizeof(buf)) {
 			memcpy(dstp, bufp, size);
 			bufp += size;
-			size = 0;
+			break;
 		} else {
 			int n = buf + sizeof(buf) - bufp;
 
