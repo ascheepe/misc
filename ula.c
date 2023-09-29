@@ -49,11 +49,8 @@ blkread(const char *filename, void *dst, size_t size)
 static void
 sysrand(void *dst, int size)
 {
-	static uchar buf[128], *bufp;
-	uchar *dstp;
-
-	dstp = dst;
-	bufp = buf + sizeof(buf);
+	static uchar buf[128], *bufp = buf + sizeof(buf);
+	uchar *dstp = dst;
 
 	while (size > 0) {
 		if (bufp >= buf + sizeof(buf)) {
