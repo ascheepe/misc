@@ -129,7 +129,7 @@ length_warning(int is, int shouldbe)
 }
 
 /*
- * Replace the color string at position pos with a monochrome version of it.
+ * Replace the color string str with a monochrome version of it.
  */
 static void
 replace_color(char *str, enum hues hue)
