@@ -233,7 +233,6 @@ main(int argc, char **argv)
 
 			replace_color(pos, hue);
 			pos += color_length(pos);
-
 		}
 
 		fwrite(buf, strlen(buf), 1, stdout);
