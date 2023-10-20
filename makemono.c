@@ -227,7 +227,7 @@ main(int argc, char **argv)
 			 * following non blanks.
 			 */
 			if (pos > buf && !isspace(pos[-1])) {
-				++pos;
+				pos += color_length(pos);
 				continue;
 			}
 
