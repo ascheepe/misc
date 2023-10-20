@@ -132,14 +132,14 @@ length_warning(int is, int shouldbe)
  * Replace the color string at position pos with a monochrome version of it.
  */
 static void
-replace_color(char *pos, enum hues hue)
+replace_color(char *str, enum hues hue)
 {
 	char buf[BUFSIZE];
 	struct rgb c;
 	int len;
 	int Y;
 
-	str_to_rgb(pos, &c);
+	str_to_rgb(str, &c);
 	if (hue == WHITE && is_monochrome(&c))
 		return;
 
@@ -166,19 +166,19 @@ replace_color(char *pos, enum hues hue)
 		break;
 	}
 
-	if (color_length(pos) == 4) {
+	if (color_length(str) == 4) {
 		c.r = (c.r + 8) / 16;
 		c.g = (c.g + 8) / 16;
 		c.b = (c.b + 8) / 16;
 		len = sprintf(buf, "#%1x%1x%1x", c.r, c.g, c.b);
 		if (len == 4)
-			memcpy(pos, buf, 4);
+			memcpy(str, buf, 4);
 		else
 			length_warning(len, 4);
 	} else {
 		len = sprintf(buf, "#%02x%02x%02x", c.r, c.g, c.b);
 		if (len == 7)
-			memcpy(pos, buf, 7);
+			memcpy(str, buf, 7);
 		else
 			length_warning(len, 7);
 	}
