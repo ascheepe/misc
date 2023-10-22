@@ -222,16 +222,10 @@ main(int argc, char **argv)
 		char *pos = buf;
 
 		while ((pos = find_color(pos)) != NULL) {
-			/*
-			 * skip any color definitions directly
-			 * following non blanks.
-			 */
-			if (pos > buf && !isspace(pos[-1])) {
-				pos += color_length(pos);
-				continue;
-			}
+			/* only replace colors following space or at start */
+			if ((pos > buf && isspace(pos[-1])) || (pos == buf))
+				replace_color(pos, hue);
 
-			replace_color(pos, hue);
 			pos += color_length(pos);
 		}
 
