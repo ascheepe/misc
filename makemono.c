@@ -109,13 +109,13 @@ str_to_rgb(const char *str, struct rgb *c)
 }
 
 static int
-is_monochrome(const struct rgb *c)
+is_mono(const struct rgb *c)
 {
 	return c->r == c->g && c->r == c->b;
 }
 
 static int
-color_to_luma(const struct rgb *c)
+color_to_mono(const struct rgb *c)
 {
 	return c->r * 299 / 1000 + c->g * 587 / 1000 + c->b * 114 / 1000;
 }
@@ -140,10 +140,10 @@ replace_color(char *str, enum hues hue)
 	int Y;
 
 	str_to_rgb(str, &c);
-	if (hue == WHITE && is_monochrome(&c))
+	if (hue == WHITE && is_mono(&c))
 		return;
 
-	Y = color_to_luma(&c);
+	Y = color_to_mono(&c);
 	switch (hue) {
 	case AMBER:
 		c.r = Y;
