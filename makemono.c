@@ -164,7 +164,7 @@ replace_color(char *str, enum hues hue)
 	switch (hue) {
 	case AMBER:
 		c.r = Y;
-		c.g = Y * 191 / 255;
+		c.g = Y * 191L / 255;
 		c.b = 0;
 		break;
 	case CYAN:
