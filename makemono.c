@@ -72,6 +72,38 @@ color_length(const char *str)
 	return len;
 }
 
+static void
+conversion_error(const char ch)
+{
+	fprintf(stderr, "Invalid hexadecimal value '%c', ", ch);
+	fprintf(stderr, "skipping conversion.\n");
+}
+
+static int
+hex_to_int(const char *str, int len)
+{
+	char hex[] = "0123456789abcdef";
+	int shift, ret;
+	int i, j;
+
+	ret = 0;
+	shift = (len - 1) * 4;
+
+	for (i = 0; i < len; ++i) {
+		for (j = 0; j < (int)sizeof(hex); ++j)
+			if (tolower(str[i]) == hex[j])
+				break;
+		if (j == (int)sizeof(hex)) {
+			conversion_error(str[i]);
+			return 0;
+		}
+		ret += j << shift;
+		shift -= 4;
+	}
+
+	return ret;
+}
+
 /*
  * Split a hex color string into separate red, green and blue
  * color values.
@@ -79,32 +111,19 @@ color_length(const char *str)
 static void
 str_to_rgb(const char *str, struct rgb *c)
 {
-	char buf[3] = { 0 };
-
 	if (color_length(str) == 4) {
-		buf[0] = str[1];
-		buf[1] = str[1];
-		c->r = strtol(buf, NULL, 16);
+		c->r = hex_to_int(&str[1], 1);
+		c->r += c->r << 4;
 
-		buf[0] = str[2];
-		buf[1] = str[2];
-		c->g = strtol(buf, NULL, 16);
+		c->g = hex_to_int(&str[2], 1);
+		c->g += c->g << 4;
 
-		buf[0] = str[3];
-		buf[1] = str[3];
-		c->b = strtol(buf, NULL, 16);
+		c->b = hex_to_int(&str[3], 1);
+		c->b += c->b << 4;
 	} else {
-		buf[0] = str[1];
-		buf[1] = str[2];
-		c->r = strtol(buf, NULL, 16);
-
-		buf[0] = str[3];
-		buf[1] = str[4];
-		c->g = strtol(buf, NULL, 16);
-
-		buf[0] = str[5];
-		buf[1] = str[6];
-		c->b = strtol(buf, NULL, 16);
+		c->r = hex_to_int(&str[1], 2);
+		c->g = hex_to_int(&str[3], 2);
+		c->b = hex_to_int(&str[5], 2);
 	}
 }
 
