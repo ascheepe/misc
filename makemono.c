@@ -72,13 +72,6 @@ color_length(const char *str)
 	return len;
 }
 
-static void
-conversion_warning(const char ch)
-{
-	fprintf(stderr, "Invalid hexadecimal value '%c', ", ch);
-	fprintf(stderr, "skipping conversion.\n");
-}
-
 /*
  * Convert a hexidecimal value in str of length len to an integer.
  */
@@ -97,10 +90,8 @@ hex_to_int(const char *str, int len)
 			if (tolower(str[i]) == hex[j])
 				break;
 
-		if (j == (int)sizeof(hex)) {
-			conversion_warning(str[i]);
+		if (j == (int)sizeof(hex))
 			break;
-		}
 
 		ret += j << shift;
 		shift -= 4;
