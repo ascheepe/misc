@@ -96,10 +96,12 @@ hex_to_int(const char *str, int len)
 		for (j = 0; j < (int)sizeof(hex); ++j)
 			if (tolower(str[i]) == hex[j])
 				break;
+
 		if (j == (int)sizeof(hex)) {
 			conversion_warning(str[i]);
-			return 0;
+			break;
 		}
+
 		ret += j << shift;
 		shift -= 4;
 	}
