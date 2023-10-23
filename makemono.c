@@ -79,6 +79,7 @@ static int
 hex_to_int(const char *str, int len)
 {
 	char hex[] = "0123456789abcdef";
+	int hexlen = sizeof(hex);
 	int shift, ret;
 	int i, j;
 
@@ -86,11 +87,11 @@ hex_to_int(const char *str, int len)
 	shift = (len - 1) * 4;
 
 	for (i = 0; i < len; ++i) {
-		for (j = 0; j < (int)sizeof(hex); ++j)
+		for (j = 0; j < hexlen; ++j)
 			if (tolower(str[i]) == hex[j])
 				break;
 
-		if (j == (int)sizeof(hex))
+		if (j == hexlen)
 			break;
 
 		ret += j << shift;
