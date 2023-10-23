@@ -107,7 +107,11 @@ hex_to_int(const char *str, int len)
 static void
 str_to_rgb(const char *str, struct rgb *c)
 {
-	if (color_length(str) == 4) {
+	if (color_length(str) == 7) {
+		c->r = hex_to_int(&str[1], 2);
+		c->g = hex_to_int(&str[3], 2);
+		c->b = hex_to_int(&str[5], 2);
+	} else {
 		c->r = hex_to_int(&str[1], 1);
 		c->r += c->r << 4;
 
@@ -116,10 +120,6 @@ str_to_rgb(const char *str, struct rgb *c)
 
 		c->b = hex_to_int(&str[3], 1);
 		c->b += c->b << 4;
-	} else {
-		c->r = hex_to_int(&str[1], 2);
-		c->g = hex_to_int(&str[3], 2);
-		c->b = hex_to_int(&str[5], 2);
 	}
 }
 
