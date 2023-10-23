@@ -79,6 +79,9 @@ conversion_warning(const char ch)
 	fprintf(stderr, "skipping conversion.\n");
 }
 
+/*
+ * Convert a hexidecimal value in str of length len to an integer.
+ */
 static int
 hex_to_int(const char *str, int len)
 {
