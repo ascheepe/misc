@@ -73,7 +73,7 @@ color_length(const char *str)
 }
 
 /*
- * Convert a hexidecimal value in str of length len to an integer.
+ * Convert a hexadecimal value in str to an integer.
  */
 static int
 hex_to_int(const char *str, int len)
