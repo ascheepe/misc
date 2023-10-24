@@ -154,32 +154,32 @@ replace_color(char *str, enum hues hue)
 	char buf[BUFSIZE];
 	struct rgb c;
 	int len;
-	int Y;
+	int cm;
 
 	str_to_rgb(str, &c);
 	if (hue == WHITE && is_mono(&c))
 		return;
 
-	Y = color_to_mono(&c);
+	cm = color_to_mono(&c);
 	switch (hue) {
 	case AMBER:
-		c.r = Y;
-		c.g = Y * 191L / 255;
+		c.r = cm;
+		c.g = cm * 191L / 255;
 		c.b = 0;
 		break;
 	case CYAN:
 		c.r = 0;
-		c.g = Y;
-		c.b = Y;
+		c.g = cm;
+		c.b = cm;
 		break;
 	case GREEN:
 		c.r = 0;
-		c.g = Y;
+		c.g = cm;
 		c.b = 0;
 		break;
 	case WHITE:
 	default:
-		c.r = c.g = c.b = Y;
+		c.r = c.g = c.b = cm;
 		break;
 	}
 
