@@ -133,8 +133,9 @@ is_mono(const struct rgb *c)
 static int
 color_to_mono(const struct rgb *c)
 {
-	return (int)(c->r * 299L / 1000 + c->g * 587L / 1000 +
-	    c->b * 114L / 1000);
+	return (int)((c->r * 299L + 500) / 1000 +
+	             (c->g * 587L + 500) / 1000 +
+	             (c->b * 114L + 500) / 1000);
 }
 
 static void
