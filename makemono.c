@@ -125,12 +125,6 @@ str_to_rgb(const char *str, struct rgb *c)
 }
 
 static int
-is_mono(const struct rgb *c)
-{
-	return c->r == c->g && c->r == c->b;
-}
-
-static int
 color_to_mono(const struct rgb *c)
 {
 	return (int)((c->r * 299L + 500) / 1000 +
@@ -158,8 +152,6 @@ replace_color(char *str, enum hues hue)
 	int cm;
 
 	str_to_rgb(str, &c);
-	if (hue == WHITE && is_mono(&c))
-		return;
 
 	cm = color_to_mono(&c);
 	switch (hue) {
