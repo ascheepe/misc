@@ -172,7 +172,9 @@ replace_color(char *str, enum hues hue)
 		break;
 	case WHITE:
 	default:
-		c.r = c.g = c.b = cm;
+		c.r = cm;
+		c.g = cm;
+		c.b = cm;
 		break;
 	}
 
