@@ -113,7 +113,7 @@ color_to_mono(struct rgb *color, enum hues hue)
 }
 
 static void
-process_line(const char *line, FILE *fout, enum hues hue)
+process_line(const char *line, FILE *outf, enum hues hue)
 {
 	const char *pos = line;
 
@@ -122,7 +122,7 @@ process_line(const char *line, FILE *fout, enum hues hue)
 
 		if ((color = parse_hexcolor(pos)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(fout, "#%02x%02x%02x",
+			fprintf(outf, "#%02x%02x%02x",
 			    color->r, color->g, color->b);
 			free(color);
 
@@ -130,7 +130,7 @@ process_line(const char *line, FILE *fout, enum hues hue)
 				++pos;
 		} else if ((color = parse_rgbcolor(pos)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(fout, "rgb(%d, %d, %d)",
+			fprintf(outf, "rgb(%d, %d, %d)",
 			    color->r, color->g, color->b);
 			free(color);
 
@@ -138,7 +138,7 @@ process_line(const char *line, FILE *fout, enum hues hue)
 				++pos;
 			++pos;
 		} else
-			fputc(*pos++, fout);
+			fputc(*pos++, outf);
 	}
 }
 
