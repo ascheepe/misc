@@ -34,53 +34,51 @@ xmalloc(size_t size)
 struct rgb *
 parse_hexcolor(const char *str)
 {
-	struct rgb *ret;
+	struct rgb *ret = NULL;
 	unsigned int r, g, b;
-	char tail;
+	char c;
 
-	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &tail) == 4) {
-		if (!isspace(tail))
+	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &c) == 4) {
+		if (!isspace(c))
 			return NULL;
 
 		ret = xmalloc(sizeof(*ret));
 		ret->r = r;
 		ret->g = g;
 		ret->b = b;
-
-		return ret;
-	}
-
-	if (sscanf(str, "#%1x%1x%1x%c", &r, &g, &b, &tail) == 4) {
-		if (!isspace(tail))
+	} else if (sscanf(str, "#%1x%1x%1x%c", &r, &g, &b, &c) == 4) {
+		if (!isspace(c))
 			return NULL;
 
 		ret = xmalloc(sizeof(*ret));
 		ret->r = r + 16 * r;
 		ret->g = g + 16 * g;
 		ret->b = b + 16 * b;
-
-		return ret;
 	}
 
-	return NULL;
+	return ret;
 }
 
 static struct rgb *
 parse_rgbcolor(const char *str)
 {
-	struct rgb *ret;
+	struct rgb *ret = NULL;
 	int r, g, b;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
+		if (r < 0 || r > 256 || g < 0 || g > 256 ||
+		    b < 0 || b > 256) {
+			fprintf(stderr, "WARNING: invalid color ");
+			fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
+			return NULL;
+		}
 		ret = xmalloc(sizeof(*ret));
 		ret->r = r;
 		ret->g = g;
 		ret->b = b;
-
-		return ret;
 	}
 
-	return NULL;
+	return ret;
 }
 
 static void
