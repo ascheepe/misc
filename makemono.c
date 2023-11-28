@@ -118,9 +118,7 @@ color_to_mono(struct rgb *color, enum hues hue)
 static void
 process_line(const char *line, FILE *fout, enum hues hue)
 {
-	const char *pos;
-
-	pos = line;
+	const char *pos = line;
 
 	while (*pos != '\0') {
 		struct rgb *color;
