@@ -6,8 +6,6 @@
 
 #define MAXLINELEN 8192
 
-enum { false, true };
-
 enum hues {
 	AMBER,
 	CYAN,
