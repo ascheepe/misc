@@ -5,7 +5,8 @@
 #include <unistd.h>
 
 #define MAXLINELEN 8192
-#define BUFSIZE 64
+
+enum { false, true };
 
 enum hues {
 	AMBER,
@@ -15,184 +16,139 @@ enum hues {
 };
 
 struct rgb {
-	int r, g, b;
+	unsigned int r, g, b;
 };
 
-/*
- * Check to see if the string at str is a valid color.
- * A color is valid when it starts with a pound(#) sign
- * followed by either three or six hexadecimal digits.
- * It should end with either a space, tab, newline or
- * NULL character.
- */
-static int
-is_valid_color(char *str)
+static void *
+xmalloc(size_t size)
 {
-	if (*str == '#') {
-		int i = 1;
+	void *ptr;
 
-		while (isxdigit(str[i]) && i < 8)
-			++i;
-
-		if ((i == 4 || i == 7) &&
-		    (isspace(str[i]) || str[i] == '\0'))
-			return 1;
+	ptr = malloc(size);
+	if (ptr == NULL) {
+		fprintf(stderr, "Out of memory!\n");
+		exit(EXIT_FAILURE);
 	}
 
-	return 0;
+	return ptr;
 }
 
-/*
- * Find a color definition in the given string and return the
- * position of it, or NULL if not found.
- */
-static char *
-find_color(char *str)
+struct rgb *
+parse_hexcolor(const char *str)
 {
-	while (*str != '\0') {
-		if (is_valid_color(str))
-			return str;
-		++str;
+	struct rgb *ret;
+	unsigned int r, g, b;
+	char tail;
+
+	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &tail) == 4) {
+		if (!isspace(tail))
+			return NULL;
+
+		ret = xmalloc(sizeof(*ret));
+		ret->r = r;
+		ret->g = g;
+		ret->b = b;
+
+		return ret;
+	}
+
+	if (sscanf(str, "#%1x%1x%1x%c", &r, &g, &b, &tail) == 4) {
+		if (!isspace(tail))
+			return NULL;
+
+		ret = xmalloc(sizeof(*ret));
+		ret->r = r + 16 * r;
+		ret->g = g + 16 * g;
+		ret->b = b + 16 * b;
+
+		return ret;
 	}
 
 	return NULL;
 }
 
-/*
- * Return the length of a color string.
- */
-static int
-color_length(const char *str)
+static struct rgb *
+parse_rgbcolor(const char *str)
 {
-	int len = 1;
+	struct rgb *ret;
+	int r, g, b;
 
-	while (isxdigit(*++str))
-		++len;
+	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
+		ret = xmalloc(sizeof(*ret));
+		ret->r = r;
+		ret->g = g;
+		ret->b = b;
 
-	return len;
-}
-
-/*
- * Convert a hexadecimal value in str to an integer.
- */
-static int
-hex_to_int(const char *str, int len)
-{
-	char hex[] = "0123456789abcdef";
-	int hexlen = sizeof(hex);
-	int shift, ret;
-	int i, j;
-
-	ret = 0;
-	shift = (len - 1) * 4;
-
-	for (i = 0; i < len; ++i) {
-		for (j = 0; j < hexlen; ++j)
-			if (tolower(str[i]) == hex[j])
-				break;
-
-		if (j == hexlen)
-			break;
-
-		ret += j << shift;
-		shift -= 4;
+		return ret;
 	}
 
-	return ret;
-}
-
-/*
- * Split a hex color string into separate red, green and blue
- * color values.
- */
-static void
-str_to_rgb(const char *str, struct rgb *c)
-{
-	if (color_length(str) == 7) {
-		c->r = hex_to_int(&str[1], 2);
-		c->g = hex_to_int(&str[3], 2);
-		c->b = hex_to_int(&str[5], 2);
-	} else {
-		c->r = hex_to_int(&str[1], 1);
-		c->r += c->r << 4;
-
-		c->g = hex_to_int(&str[2], 1);
-		c->g += c->g << 4;
-
-		c->b = hex_to_int(&str[3], 1);
-		c->b += c->b << 4;
-	}
-}
-
-static int
-color_to_mono(const struct rgb *c)
-{
-	return (int)((c->r * 299L + 500) / 1000 +
-	             (c->g * 587L + 500) / 1000 +
-	             (c->b * 114L + 500) / 1000);
+	return NULL;
 }
 
 static void
-length_warning(int is, int shouldbe)
+color_to_mono(struct rgb *color, enum hues hue)
 {
-	fprintf(stderr,
-	    "Unexpected length of %d should be %d; skipping replacement.\n",
-	    is, shouldbe);
-}
+	int gray;
 
-/*
- * Replace the color string str with a monochrome version of it.
- */
-static void
-replace_color(char *str, enum hues hue)
-{
-	char buf[BUFSIZE];
-	struct rgb c;
-	int len;
-	int cm;
+	gray = ((color->r * 299L + 500) / 1000 +
+	        (color->g * 587L + 500) / 1000 +
+	        (color->b * 114L + 500) / 1000);
 
-	str_to_rgb(str, &c);
-
-	cm = color_to_mono(&c);
 	switch (hue) {
 	case AMBER:
-		c.r = cm;
-		c.g = cm * 191L / 255;
-		c.b = 0;
+		color->r = gray;
+		color->g = gray * 191L / 255;
+		color->b = 0;
 		break;
 	case CYAN:
-		c.r = 0;
-		c.g = cm;
-		c.b = cm;
+		color->r = 0;
+		color->g = gray;
+		color->b = gray;
 		break;
 	case GREEN:
-		c.r = 0;
-		c.g = cm;
-		c.b = 0;
+		color->r = 0;
+		color->g = gray;
+		color->b = 0;
 		break;
 	case WHITE:
 	default:
-		c.r = cm;
-		c.g = cm;
-		c.b = cm;
+		color->r = gray;
+		color->g = gray;
+		color->b = gray;
 		break;
 	}
+}
 
-	if (color_length(str) == 4) {
-		c.r = (c.r + 8) / 16;
-		c.g = (c.g + 8) / 16;
-		c.b = (c.b + 8) / 16;
-		len = sprintf(buf, "#%1x%1x%1x", c.r, c.g, c.b);
-		if (len == 4)
-			memcpy(str, buf, 4);
-		else
-			length_warning(len, 4);
-	} else {
-		len = sprintf(buf, "#%02x%02x%02x", c.r, c.g, c.b);
-		if (len == 7)
-			memcpy(str, buf, 7);
-		else
-			length_warning(len, 7);
+static void
+process_line(const char *line, FILE *fout, enum hues hue)
+{
+	const char *pos, *end;
+
+	pos = line;
+	end = line + strlen(line);
+
+	while (pos < end) {
+		struct rgb *color;
+
+		if ((color = parse_hexcolor(pos)) != NULL) {
+			color_to_mono(color, hue);
+			fprintf(fout, "#%02x%02x%02x",
+			    color->r, color->g, color->b);
+			free(color);
+
+			while (!isspace(*pos))
+				++pos;
+		} else if ((color = parse_rgbcolor(pos)) != NULL) {
+			color_to_mono(color, hue);
+			fprintf(fout, "rgb(%d, %d, %d)",
+			    color->r, color->g, color->b);
+			free(color);
+
+			while (*pos != ')')
+				++pos;
+			++pos;
+		} else
+			fputc(*pos++, fout);
 	}
 }
 
@@ -225,24 +181,13 @@ get_hue(int argc, char **argv)
 int
 main(int argc, char **argv)
 {
-	char buf[MAXLINELEN];
+	char line[MAXLINELEN];
 	enum hues hue;
 
 	hue = get_hue(argc, argv);
 
-	while (fgets(buf, sizeof(buf), stdin) != NULL) {
-		char *pos = buf;
-
-		while ((pos = find_color(pos)) != NULL) {
-			/* only replace colors following space or at start */
-			if ((pos > buf && isspace(pos[-1])) || (pos == buf))
-				replace_color(pos, hue);
-
-			pos += color_length(pos);
-		}
-
-		fwrite(buf, strlen(buf), 1, stdout);
-	}
+	while (fgets(line, sizeof(line), stdin) != NULL)
+		process_line(line, stdout, hue);
 
 	return 0;
 }
