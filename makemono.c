@@ -34,7 +34,7 @@ xmalloc(size_t size)
 struct rgb *
 parse_hexcolor(const char *str)
 {
-	struct rgb *ret = NULL;
+	struct rgb *color = NULL;
 	unsigned int r, g, b;
 	char c;
 
@@ -42,27 +42,27 @@ parse_hexcolor(const char *str)
 		if (!isspace(c))
 			return NULL;
 
-		ret = xmalloc(sizeof(*ret));
-		ret->r = r;
-		ret->g = g;
-		ret->b = b;
+		color = xmalloc(sizeof(*color));
+		color->r = r;
+		color->g = g;
+		color->b = b;
 	} else if (sscanf(str, "#%1x%1x%1x%c", &r, &g, &b, &c) == 4) {
 		if (!isspace(c))
 			return NULL;
 
-		ret = xmalloc(sizeof(*ret));
-		ret->r = r + 16 * r;
-		ret->g = g + 16 * g;
-		ret->b = b + 16 * b;
+		color = xmalloc(sizeof(*color));
+		color->r = r + 16 * r;
+		color->g = g + 16 * g;
+		color->b = b + 16 * b;
 	}
 
-	return ret;
+	return color;
 }
 
 static struct rgb *
 parse_rgbcolor(const char *str)
 {
-	struct rgb *ret = NULL;
+	struct rgb *color = NULL;
 	int r, g, b;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
@@ -72,13 +72,13 @@ parse_rgbcolor(const char *str)
 			fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
 			return NULL;
 		}
-		ret = xmalloc(sizeof(*ret));
-		ret->r = r;
-		ret->g = g;
-		ret->b = b;
+		color = xmalloc(sizeof(*color));
+		color->r = r;
+		color->g = g;
+		color->b = b;
 	}
 
-	return ret;
+	return color;
 }
 
 static void
