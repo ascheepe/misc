@@ -86,14 +86,14 @@ color_to_mono(struct rgb *color, enum hues hue)
 {
 	int gray;
 
-	gray = ((color->r * 299L + 500) / 1000 +
-	        (color->g * 587L + 500) / 1000 +
-	        (color->b * 114L + 500) / 1000);
+	gray = (int)((color->r * 299L + 500) / 1000 +
+	             (color->g * 587L + 500) / 1000 +
+	             (color->b * 114L + 500) / 1000);
 
 	switch (hue) {
 	case AMBER:
 		color->r = gray;
-		color->g = gray * 191L / 255;
+		color->g = (unsigned int)(gray * 191L / 255);
 		color->b = 0;
 		break;
 	case CYAN:
