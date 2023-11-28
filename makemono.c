@@ -7,10 +7,7 @@
 #define MAXLINELEN 8192
 
 enum hues {
-	AMBER,
-	CYAN,
-	GREEN,
-	WHITE
+	WHITE, AMBER, CYAN, GREEN
 };
 
 struct rgb {
@@ -91,6 +88,12 @@ color_to_mono(struct rgb *color, enum hues hue)
 	             (color->b * 114L + 500) / 1000);
 
 	switch (hue) {
+	default:
+	case WHITE:
+		color->r = gray;
+		color->g = gray;
+		color->b = gray;
+		break;
 	case AMBER:
 		color->r = gray;
 		color->g = (unsigned int)(gray * 191L / 255);
@@ -105,12 +108,6 @@ color_to_mono(struct rgb *color, enum hues hue)
 		color->r = 0;
 		color->g = gray;
 		color->b = 0;
-		break;
-	case WHITE:
-	default:
-		color->r = gray;
-		color->g = gray;
-		color->b = gray;
 		break;
 	}
 }
