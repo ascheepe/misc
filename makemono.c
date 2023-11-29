@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
 
 #define MAXLINELEN 8192
 
@@ -11,7 +10,7 @@ enum hues {
 };
 
 struct rgb {
-	unsigned int r, g, b;
+	unsigned char r, g, b;
 };
 
 static void *
@@ -146,10 +145,12 @@ static enum hues
 get_hue(int argc, char **argv)
 {
 	enum hues hue = WHITE;
-	int opt;
 
-	while ((opt = getopt(argc, argv, "acgw")) != -1) {
-		switch (opt) {
+	if (argc < 2)
+		return hue;
+
+	if (argv[1][0] == '-') {
+		switch (argv[1][1]) {
 		case 'a':
 			hue = AMBER;
 			break;
