@@ -62,8 +62,7 @@ parse_rgbcolor(const char *str)
 	int r, g, b;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
-		if (r < 0 || r > 256 || g < 0 || g > 256 ||
-		    b < 0 || b > 256) {
+		if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
 			fprintf(stderr, "WARNING: invalid color ");
 			fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
 			return NULL;
@@ -83,8 +82,7 @@ color_to_mono(struct rgb *color, enum hues hue)
 	int gray;
 
 	gray = (int)((color->r * 299L + 500) / 1000 +
-	             (color->g * 587L + 500) / 1000 +
-	             (color->b * 114L + 500) / 1000);
+	    (color->g * 587L + 500) / 1000 + (color->b * 114L + 500) / 1000);
 
 	switch (hue) {
 	default:
