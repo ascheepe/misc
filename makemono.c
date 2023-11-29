@@ -34,6 +34,9 @@ parse_hexcolor(const char *str)
 	unsigned int r, g, b;
 	char c;
 
+	if (str[0] != '#')
+		return NULL;
+
 	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &c) == 4) {
 		if (!isspace(c))
 			return NULL;
@@ -60,6 +63,9 @@ parse_rgbcolor(const char *str)
 {
 	struct rgb *color = NULL;
 	int r, g, b;
+
+	if (str[0] != 'r')
+		return NULL;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
 		if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
