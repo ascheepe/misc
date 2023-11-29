@@ -95,7 +95,7 @@ color_to_mono(struct rgb *color, enum hues hue)
 		break;
 	case AMBER:
 		color->r = gray;
-		color->g = (unsigned int)(gray * 191L / 255);
+		color->g = (unsigned char)(gray * 191L / 255);
 		color->b = 0;
 		break;
 	case CYAN:
