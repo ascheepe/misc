@@ -34,7 +34,7 @@ parse_hexcolor(const char *str)
 	unsigned int r, g, b;
 	char c;
 
-	if (str[0] != '#')
+	if (*str != '#')
 		return NULL;
 
 	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &c) == 4) {
@@ -64,7 +64,7 @@ parse_rgbcolor(const char *str)
 	struct rgb *color = NULL;
 	int r, g, b;
 
-	if (str[0] != 'r')
+	if (*str != 'r')
 		return NULL;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
@@ -116,7 +116,7 @@ color_to_mono(struct rgb *color, enum hues hue)
 }
 
 static void
-process_line(const char *line, FILE *outf, enum hues hue)
+process_line(const char *line, FILE *out, enum hues hue)
 {
 	const char *pos = line;
 
@@ -125,7 +125,7 @@ process_line(const char *line, FILE *outf, enum hues hue)
 
 		if ((color = parse_hexcolor(pos)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(outf, "#%02x%02x%02x",
+			fprintf(out, "#%02x%02x%02x",
 			    color->r, color->g, color->b);
 			free(color);
 
@@ -133,7 +133,7 @@ process_line(const char *line, FILE *outf, enum hues hue)
 				++pos;
 		} else if ((color = parse_rgbcolor(pos)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(outf, "rgb(%d, %d, %d)",
+			fprintf(out, "rgb(%d, %d, %d)",
 			    color->r, color->g, color->b);
 			free(color);
 
@@ -141,7 +141,7 @@ process_line(const char *line, FILE *outf, enum hues hue)
 				++pos;
 			++pos;
 		} else
-			fputc(*pos++, outf);
+			fputc(*pos++, out);
 	}
 }
 
