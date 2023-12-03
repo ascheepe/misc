@@ -69,7 +69,7 @@ parse_rgbcolor(const char *str, size_t *len)
 		return NULL;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
-		const char *p = str;
+		const char *p;
 
 		if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
 			fprintf(stderr, "WARNING: invalid color ");
