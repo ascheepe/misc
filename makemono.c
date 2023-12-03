@@ -28,38 +28,39 @@ xmalloc(size_t size)
 }
 
 struct rgb *
-parse_hexcolor(const char *str)
+parse_hexcolor(const char *str, size_t *len)
 {
 	struct rgb *color = NULL;
 	unsigned int r, g, b;
-	char c;
 
 	if (*str != '#')
 		return NULL;
 
-	if (sscanf(str, "#%02x%02x%02x%c", &r, &g, &b, &c) == 4) {
-		if (!isspace(c))
+	if (sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
+		if (!isspace(str[8]) && str[8] != '\0')
 			return NULL;
 
 		color = xmalloc(sizeof(*color));
 		color->r = r;
 		color->g = g;
 		color->b = b;
-	} else if (sscanf(str, "#%1x%1x%1x%c", &r, &g, &b, &c) == 4) {
-		if (!isspace(c))
+		*len = 7;
+	} else if (sscanf(str, "#%1x%1x%1x", &r, &g, &b) == 3) {
+		if (!isspace(str[8]) && str[8] != '\0')
 			return NULL;
 
 		color = xmalloc(sizeof(*color));
 		color->r = r + 16 * r;
 		color->g = g + 16 * g;
 		color->b = b + 16 * b;
+		*len = 4;
 	}
 
 	return color;
 }
 
 static struct rgb *
-parse_rgbcolor(const char *str)
+parse_rgbcolor(const char *str, size_t *len)
 {
 	struct rgb *color = NULL;
 	int r, g, b;
@@ -68,6 +69,8 @@ parse_rgbcolor(const char *str)
 		return NULL;
 
 	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
+		const char *p = str;
+
 		if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
 			fprintf(stderr, "WARNING: invalid color ");
 			fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
@@ -77,6 +80,10 @@ parse_rgbcolor(const char *str)
 		color->r = r;
 		color->g = g;
 		color->b = b;
+
+		for (p = str; *p != ')'; ++p) {
+		}
+		*len = ++p - str;
 	}
 
 	return color;
@@ -122,24 +129,22 @@ process_line(const char *line, FILE *out, enum hues hue)
 
 	while (*pos != '\0') {
 		struct rgb *color;
+		size_t len;
 
-		if ((color = parse_hexcolor(pos)) != NULL) {
+		if ((color = parse_hexcolor(pos, &len)) != NULL) {
 			color_to_mono(color, hue);
 			fprintf(out, "#%02x%02x%02x",
 			    color->r, color->g, color->b);
 			free(color);
 
-			while (!isspace(*pos))
-				++pos;
-		} else if ((color = parse_rgbcolor(pos)) != NULL) {
+			pos += len;
+		} else if ((color = parse_rgbcolor(pos, &len)) != NULL) {
 			color_to_mono(color, hue);
 			fprintf(out, "rgb(%d, %d, %d)",
 			    color->r, color->g, color->b);
 			free(color);
 
-			while (*pos != ')')
-				++pos;
-			++pos;
+			pos += len;
 		} else
 			fputc(*pos++, out);
 	}
