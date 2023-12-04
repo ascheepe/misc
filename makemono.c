@@ -59,6 +59,12 @@ parse_hexcolor(const char *str, size_t *len)
 	return color;
 }
 
+static void
+print_hexcolor(const struct rgb *color, FILE *out)
+{
+	fprintf(out, "#%02x%02x%02x", color->r, color->g, color->b);
+}
+
 static struct rgb *
 parse_rgbcolor(const char *str, size_t *len)
 {
@@ -87,6 +93,12 @@ parse_rgbcolor(const char *str, size_t *len)
 	}
 
 	return color;
+}
+
+static void
+print_rgbcolor(const struct rgb *color, FILE *out)
+{
+	fprintf(out, "rgb(%d, %d, %d)", color->r, color->g, color->b);
 }
 
 static void
@@ -133,15 +145,13 @@ process_line(const char *line, FILE *out, enum hues hue)
 
 		if ((color = parse_hexcolor(pos, &len)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(out, "#%02x%02x%02x",
-			    color->r, color->g, color->b);
+			print_hexcolor(color, out);
 			free(color);
 
 			pos += len;
 		} else if ((color = parse_rgbcolor(pos, &len)) != NULL) {
 			color_to_mono(color, hue);
-			fprintf(out, "rgb(%d, %d, %d)",
-			    color->r, color->g, color->b);
+			print_rgbcolor(color, out);
 			free(color);
 
 			pos += len;
