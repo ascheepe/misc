@@ -37,7 +37,7 @@ parse_hexcolor(const char *str, size_t *len)
 		return NULL;
 
 	if (sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
-		if (!isspace(str[8]) && str[8] != '\0')
+		if (!(isspace(str[8]) || str[8] == '\0'))
 			return NULL;
 
 		color = xmalloc(sizeof(*color));
@@ -46,7 +46,7 @@ parse_hexcolor(const char *str, size_t *len)
 		color->b = b;
 		*len = 7;
 	} else if (sscanf(str, "#%1x%1x%1x", &r, &g, &b) == 3) {
-		if (!isspace(str[8]) && str[8] != '\0')
+		if (!(isspace(str[8]) || str[8] == '\0'))
 			return NULL;
 
 		color = xmalloc(sizeof(*color));
