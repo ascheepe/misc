@@ -87,8 +87,8 @@ parse_rgbcolor(const char *str, size_t *len)
 		color->g = g;
 		color->b = b;
 
-		for (p = str; *p != ')'; ++p) {
-		}
+		for (p = str; *p != ')'; ++p)
+			;
 		*len = ++p - str;
 	}
 
