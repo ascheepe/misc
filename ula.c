@@ -59,12 +59,12 @@ static void system_random(void *destination_ptr, size_t size)
             buffer_position = buffer;
         }
 
-        if (buffer_position + size <= buffer + sizeof(buffer)) {
+        if (buffer_position + size <= buffer_end) {
             memcpy(destination, buffer_position, size);
             buffer_position += size;
             size = 0;
         } else {
-            size_t length = buffer + sizeof(buffer) - buffer_position;
+            size_t length = buffer_end - buffer_position;
 
             memcpy(destination, buffer_position, length);
             destination += length;
