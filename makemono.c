@@ -91,7 +91,7 @@ static struct rgb *parse_rgbcolor(const char *str, size_t *length)
 
         color_start = str;
         color_end = str + 4;
-        while (color_end != ')') {
+        while (*color_end != ')') {
             ++color_end;
         }
         ++color_end;
