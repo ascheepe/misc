@@ -75,20 +75,23 @@ static struct rgb *parse_rgbcolor(const char *str, size_t *length)
     }
 
     if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
-        const char *color_start = str;
-        const char *color_end = str;
+        const char *color_start;
+        const char *color_end;
 
         if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
             fprintf(stderr, "WARNING: invalid color ");
             fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
             return NULL;
         }
+
         color = xmalloc(sizeof(*color));
         color->r = r;
         color->g = g;
         color->b = b;
 
-        while (*color_end != ')') {
+        color_start = str;
+        color_end = str + 4;
+        while (color_end != ')') {
             ++color_end;
         }
         ++color_end;
