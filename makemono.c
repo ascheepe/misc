@@ -68,19 +68,20 @@ static void print_hexcolor(const struct rgb *color, FILE *out)
 static struct rgb *parse_rgbcolor(const char *str, size_t *length)
 {
     struct rgb *color = NULL;
-    int r, g, b;
+    unsigned int r, g, b;
 
     if (*str != 'r') {
         return NULL;
     }
 
-    if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
+    if (sscanf(str, "rgb(%u, %u, %u)", &r, &g, &b) == 3) {
         const char *color_start;
         const char *color_end;
 
-        if (r < 0 || r > 256 || g < 0 || g > 256 || b < 0 || b > 256) {
-            fprintf(stderr, "WARNING: invalid color ");
-            fprintf(stderr, "rgb(%d, %d, %d) found.", r, g, b);
+        if (r > 255 || g > 255 || b > 255) {
+            fprintf(stderr,
+                    "WARNING: invalid color rgb(%d, %d, %d) found.\n",
+                    r, g, b);
             return NULL;
         }
 
