@@ -36,7 +36,7 @@ struct rgb *parse_hexcolor(const char *str, size_t *length)
     }
 
     if (sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
-        if (!(isspace(str[8]) || str[8] == '\0')) {
+        if (!(isspace(str[7]) || str[7] == '\0')) {
             return NULL;
         }
 
@@ -46,7 +46,7 @@ struct rgb *parse_hexcolor(const char *str, size_t *length)
         color->b = b;
         *length = 7;
     } else if (sscanf(str, "#%1x%1x%1x", &r, &g, &b) == 3) {
-        if (!(isspace(str[5]) || str[5] == '\0')) {
+        if (!(isspace(str[4]) || str[4] == '\0')) {
             return NULL;
         }
 
