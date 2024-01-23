@@ -152,19 +152,17 @@ static void process_line(const char *line, FILE *output_file, enum hues hue)
             color_to_mono(color, hue);
             print_hexcolor(color, output_file);
             free(color);
-
-            current_position += length;
         } else if ((color = parse_rgbcolor(current_position, &length)) !=
                    NULL) {
             color_to_mono(color, hue);
             print_rgbcolor(color, output_file);
             free(color);
-
-            current_position += length;
         } else {
             fputc(*current_position, output_file);
-            ++current_position;
+            length = 1;
         }
+
+        current_position += length;
     }
 }
 
