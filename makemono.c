@@ -142,27 +142,26 @@ static void color_to_mono(struct rgb *color, enum hues hue)
 
 static void process_line(const char *line, FILE *output_file, enum hues hue)
 {
-    const char *current_position = line;
+    const char *cursor = line;
 
-    while (*current_position != '\0') {
+    while (*cursor != '\0') {
         struct rgb *color;
         size_t length;
 
-        if ((color = parse_hexcolor(current_position, &length)) != NULL) {
+        if ((color = parse_hexcolor(cursor, &length)) != NULL) {
             color_to_mono(color, hue);
             print_hexcolor(color, output_file);
             free(color);
-        } else if ((color = parse_rgbcolor(current_position, &length)) !=
-                   NULL) {
+        } else if ((color = parse_rgbcolor(cursor, &length)) != NULL) {
             color_to_mono(color, hue);
             print_rgbcolor(color, output_file);
             free(color);
         } else {
-            fputc(*current_position, output_file);
+            fputc(*cursor, output_file);
             length = 1;
         }
 
-        current_position += length;
+        cursor += length;
     }
 }
 
