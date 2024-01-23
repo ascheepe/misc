@@ -65,7 +65,7 @@ static void print_hexcolor(const struct rgb *color, FILE *out)
     fprintf(out, "#%02x%02x%02x", color->r, color->g, color->b);
 }
 
-static struct rgb *parse_rgbcolor(const char *str, size_t *length)
+static struct rgb *parse_rgbcolor(const char *str, size_t *color_length)
 {
     struct rgb *color = NULL;
     unsigned int r, g, b;
@@ -91,12 +91,11 @@ static struct rgb *parse_rgbcolor(const char *str, size_t *length)
         color->b = b;
 
         color_start = str;
-        color_end = str + sizeof("rgb(0,0,0") - 1;
-        while (*color_end != ')') {
-            ++color_end;
+        color_end = str + sizeof("rgb(X,X,X") - 1;
+        while (*color_end++ != ')') {
+            continue;
         }
-        ++color_end;
-        *length = color_end - color_start;
+        *color_length = color_end - color_start;
     }
 
     return color;
