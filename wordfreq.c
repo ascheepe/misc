@@ -204,29 +204,30 @@ static void hash_table_statistics(struct hash_table *hash_table)
 }
 #endif
 
-static char *read_word(FILE *f)
+static char *read_word(FILE *input_file)
 {
-    size_t len = 0, maxlen = 0;
+    size_t max_word_length = 0;
+    size_t word_length = 0;
     char *word = NULL;
     int ch;
 
-    while (((ch = fgetc(f)) != EOF) && isalpha(ch)) {
+    while (((ch = fgetc(input_file)) != EOF) && isalpha(ch)) {
         ch = tolower(ch);
 
-        if (len >= maxlen) {
-            word = xrealloc(word, maxlen + 32);
-            maxlen += 32;
+        if (word_length >= max_word_length) {
+            word = xrealloc(word, max_word_length + 32);
+            max_word_length += 32;
         }
 
-        word[len++] = ch;
+        word[word_length++] = ch;
     }
 
     if (word == NULL && ch == EOF) {
         return NULL;
     }
 
-    word = xrealloc(word, len + 1);
-    word[len] = '\0';
+    word = xrealloc(word, word_length + 1);
+    word[word_length] = '\0';
 
     return word;
 }
