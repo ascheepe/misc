@@ -43,9 +43,9 @@ struct rgb *parse_hexcolor(const char *str, size_t *color_length) {
         }
 
         color = xmalloc(sizeof(*color));
-        color->red    = red;
-        color->green  = green;
-        color->blue   = blue;
+        color->red = red;
+        color->green = green;
+        color->blue = blue;
         *color_length = 7;
     } else if (sscanf(str, "#%1x%1x%1x", &red, &green, &blue) == 3) {
         if (!(isspace(str[4]) || str[4] == '\0')) {
@@ -53,9 +53,9 @@ struct rgb *parse_hexcolor(const char *str, size_t *color_length) {
         }
 
         color = xmalloc(sizeof(*color));
-        color->red    = red   + 16 * red;
-        color->green  = green + 16 * green;
-        color->blue   = blue  + 16 * blue;
+        color->red = 16 * red + red;
+        color->green = 16 * green + green;
+        color->blue = 16 * blue + blue;
         *color_length = 4;
     }
 
@@ -67,7 +67,7 @@ static void print_hexcolor(const struct rgb *color, FILE *output_file) {
             color->red, color->green, color->blue);
 }
 
-static int valid_rgb(int red, int green, int blue) {
+static int is_valid_rgb(int red, int green, int blue) {
     if (red   < 0 || red   > 255 ||
         green < 0 || green > 255 ||
         blue  < 0 || blue  > 255) {
@@ -92,24 +92,22 @@ static struct rgb *parse_rgbcolor(const char *str, size_t *color_length) {
     }
 
     if (sscanf(str, "rgb(%d, %d, %d)", &red, &green, &blue) == 3) {
-        const char *color_start;
-        const char *color_end;
+        if (is_valid_rgb(red, green, blue)) {
+            const char *color_start;
+            const char *color_end;
 
-        if (!valid_rgb(red, green, blue)) {
-            return NULL;
+            color = xmalloc(sizeof(*color));
+            color->red = red;
+            color->green = green;
+            color->blue = blue;
+
+            color_start = str;
+            color_end = str + sizeof("rgb(X,X,X") - 1;
+            while (*color_end++ != ')') {
+                continue;
+            }
+            *color_length = color_end - color_start;
         }
-
-        color = xmalloc(sizeof(*color));
-        color->red = red;
-        color->green = green;
-        color->blue = blue;
-
-        color_start = str;
-        color_end = str + sizeof("rgb(X,X,X") - 1;
-        while (*color_end++ != ')') {
-            continue;
-        }
-        *color_length = color_end - color_start;
     }
 
     return color;
