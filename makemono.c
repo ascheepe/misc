@@ -43,9 +43,9 @@ struct rgb *parse_hexcolor(const char *str, size_t *color_length) {
         }
 
         color = xmalloc(sizeof(*color));
-        color->red = red;
-        color->green = green;
-        color->blue = blue;
+        color->red    = red;
+        color->green  = green;
+        color->blue   = blue;
         *color_length = 7;
     } else if (sscanf(str, "#%1x%1x%1x", &red, &green, &blue) == 3) {
         if (!(isspace(str[4]) || str[4] == '\0')) {
@@ -53,9 +53,9 @@ struct rgb *parse_hexcolor(const char *str, size_t *color_length) {
         }
 
         color = xmalloc(sizeof(*color));
-        color->red = 16 * red + red;
-        color->green = 16 * green + green;
-        color->blue = 16 * blue + blue;
+        color->red    = 16 * red   + red;
+        color->green  = 16 * green + green;
+        color->blue   = 16 * blue  + blue;
         *color_length = 4;
     }
 
@@ -97,12 +97,12 @@ static struct rgb *parse_rgbcolor(const char *str, size_t *color_length) {
             const char *color_end;
 
             color = xmalloc(sizeof(*color));
-            color->red = red;
+            color->red   = red;
             color->green = green;
-            color->blue = blue;
+            color->blue  = blue;
 
             color_start = str;
-            color_end = str + sizeof("rgb(X,X,X") - 1;
+            color_end   = str + sizeof("rgb(X,X,X") - 1;
             while (*color_end++ != ')') {
                 continue;
             }
@@ -122,8 +122,8 @@ static void color_to_mono(struct rgb *color, enum hues hue) {
     int gray;
 
     gray = (int) ((color->red   * 299L + 500) / 1000
-                + (color->green * 587L + 500) / 1000
-                + (color->blue  * 114L + 500) / 1000);
+         +        (color->green * 587L + 500) / 1000
+         +        (color->blue  * 114L + 500) / 1000);
 
     switch (hue) {
         default:
