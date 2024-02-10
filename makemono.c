@@ -6,211 +6,218 @@
 #define MAXLINELEN 8192
 
 enum hues {
-	WHITE, AMBER, CYAN, GREEN
+    hue_white, hue_amber, hue_cyan, hue_green
 };
 
 struct rgb {
-	unsigned char r, g, b;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
 };
 
-static void *
-xmalloc(size_t size)
-{
-	void *ptr;
+static void *xmalloc(size_t size) {
+    void *ptr;
 
-	ptr = malloc(size);
-	if (ptr == NULL) {
-		fprintf(stderr, "Out of memory!\n");
-		exit(EXIT_FAILURE);
-	}
+    ptr = malloc(size);
+    if (ptr == NULL) {
+        fprintf(stderr, "Out of memory!\n");
+        exit(EXIT_FAILURE);
+    }
 
-	return ptr;
+    return ptr;
 }
 
-struct rgb *
-parse_hexcolor(const char *str, size_t *len)
-{
-	struct rgb *c = NULL;
-	unsigned int r, g, b;
+struct rgb *parse_hexcolor(const char *str, size_t *color_length) {
+    struct rgb *color = NULL;
+    unsigned int red;
+    unsigned int green;
+    unsigned int blue;
 
-	if (*str != '#')
-		return NULL;
+    if (*str != '#') {
+        return NULL;
+    }
 
-	if (sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
-		if (!(isspace(str[7]) || str[7] == '\0'))
-			return NULL;
+    if (sscanf(str, "#%02x%02x%02x", &red, &green, &blue) == 3) {
+        if (!(isspace(str[7]) || str[7] == '\0')) {
+            return NULL;
+        }
 
-		c = xmalloc(sizeof(*c));
-		c->r = r;
-		c->g = g;
-		c->b = b;
-		*len = 7;
-	} else if (sscanf(str, "#%1x%1x%1x", &r, &g, &b) == 3) {
-		if (!(isspace(str[4]) || str[4] == '\0'))
-			return NULL;
+        color = xmalloc(sizeof(*color));
+        color->red    = red;
+        color->green  = green;
+        color->blue   = blue;
+        *color_length = 7;
+    } else if (sscanf(str, "#%1x%1x%1x", &red, &green, &blue) == 3) {
+        if (!(isspace(str[4]) || str[4] == '\0')) {
+            return NULL;
+        }
 
-		c = xmalloc(sizeof(*c));
-		c->r = r + 16 * r;
-		c->g = g + 16 * g;
-		c->b = b + 16 * b;
-		*len = 4;
-	}
+        color = xmalloc(sizeof(*color));
+        color->red    = red   + 16 * red;
+        color->green  = green + 16 * green;
+        color->blue   = blue  + 16 * blue;
+        *color_length = 4;
+    }
 
-	return c;
+    return color;
 }
 
-static void
-print_hexcolor(const struct rgb *c, FILE *f)
-{
-	fprintf(f, "#%02x%02x%02x", c->r, c->g, c->b);
+static void print_hexcolor(const struct rgb *color, FILE *output_file) {
+    fprintf(output_file, "#%02x%02x%02x",
+            color->red, color->green, color->blue);
 }
 
-static int
-valid_rgb(int r, int g, int b)
-{
-	if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
-		fprintf(stderr,
-		    "WARNING: invalid color rgb(%d, %d, %d) found.\n",
-		    r, g, b);
-		return 0;
-	}
+static int valid_rgb(int red, int green, int blue) {
+    if (red   < 0 || red   > 255 ||
+        green < 0 || green > 255 ||
+        blue  < 0 || blue  > 255) {
 
-	return 1;
+        fprintf(stderr,
+                "WARNING: invalid color rgb(%d, %d, %d) found.\n",
+                red, green, blue);
+        return 0;
+    }
+
+    return 1;
 }
 
-static struct rgb *
-parse_rgbcolor(const char *str, size_t *len)
-{
-	struct rgb *c = NULL;
-	int r, g, b;
+static struct rgb *parse_rgbcolor(const char *str, size_t *color_length) {
+    struct rgb *color = NULL;
+    int red;
+    int green;
+    int blue;
 
-	if (*str != 'r')
-		return NULL;
+    if (*str != 'r') {
+        return NULL;
+    }
 
-	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
-		const char *p;
+    if (sscanf(str, "rgb(%d, %d, %d)", &red, &green, &blue) == 3) {
+        const char *color_start;
+        const char *color_end;
 
-		if (!valid_rgb(r, g, b))
-			return NULL;
+        if (!valid_rgb(red, green, blue)) {
+            return NULL;
+        }
 
-		c = xmalloc(sizeof(*c));
-		c->r = r;
-		c->g = g;
-		c->b = b;
+        color = xmalloc(sizeof(*color));
+        color->red = red;
+        color->green = green;
+        color->blue = blue;
 
-		p = str + sizeof("rgb(X,X,X") - 1;
-		while (*p++ != ')');
-		*len = p - str;
-	}
+        color_start = str;
+        color_end = str + sizeof("rgb(X,X,X") - 1;
+        while (*color_end++ != ')') {
+            continue;
+        }
+        *color_length = color_end - color_start;
+    }
 
-	return c;
+    return color;
 }
 
-static void
-print_rgbcolor(const struct rgb *c, FILE *f)
-{
-	fprintf(f, "rgb(%d, %d, %d)", c->r, c->g, c->b);
+static void print_rgbcolor(const struct rgb *color, FILE *output_file) {
+    fprintf(output_file, "rgb(%d, %d, %d)",
+            color->red, color->green, color->blue);
 }
 
-static void
-color_to_mono(struct rgb *c, enum hues hue)
-{
-	int gray;
+static void color_to_mono(struct rgb *color, enum hues hue) {
+    int gray;
 
-	gray = (int)
-	     ((c->r * 299L + 500) / 1000
-	    + (c->g * 587L + 500) / 1000
-	    + (c->b * 114L + 500) / 1000);
+    gray = (int) ((color->red   * 299L + 500) / 1000
+                + (color->green * 587L + 500) / 1000
+                + (color->blue  * 114L + 500) / 1000);
 
-	switch (hue) {
-	default:
-	case WHITE:
-		c->r = gray;
-		c->g = gray;
-		c->b = gray;
-		break;
-	case AMBER:
-		c->r = gray;
-		c->g = (unsigned char)(gray * 191L / 255);
-		c->b = 0;
-		break;
-	case CYAN:
-		c->r = 0;
-		c->g = gray;
-		c->b = gray;
-		break;
-	case GREEN:
-		c->r = 0;
-		c->g = gray;
-		c->b = 0;
-		break;
-	}
+    switch (hue) {
+        default:
+        case hue_white:
+            color->red   = gray;
+            color->green = gray;
+            color->blue  = gray;
+            break;
+
+        case hue_amber:
+            color->red   = gray;
+            color->green = (unsigned char) (gray * 191L / 255);
+            color->blue  = 0;
+            break;
+
+        case hue_cyan:
+            color->red   = 0;
+            color->green = gray;
+            color->blue  = gray;
+            break;
+
+        case hue_green:
+            color->red   = 0;
+            color->green = gray;
+            color->blue  = 0;
+            break;
+    }
 }
 
-static void
-process_line(const char *line, FILE *f, enum hues hue)
-{
-	const char *p = line;
+static void process_line(const char *line, FILE *output_file, enum hues hue) {
+    const char *cursor = line;
 
-	while (*p != '\0') {
-		struct rgb *c;
-		size_t len;
+    while (*cursor != '\0') {
+        struct rgb *color;
+        size_t color_length;
 
-		if ((c = parse_hexcolor(p, &len)) != NULL) {
-			color_to_mono(c, hue);
-			print_hexcolor(c, f);
-			free(c);
-		} else if ((c = parse_rgbcolor(p, &len)) != NULL) {
-			color_to_mono(c, hue);
-			print_rgbcolor(c, f);
-			free(c);
-		} else {
-			fputc(*p, f);
-			len = 1;
-		}
+        if ((color = parse_hexcolor(cursor, &color_length)) != NULL) {
+            color_to_mono(color, hue);
+            print_hexcolor(color, output_file);
+            free(color);
+        } else if ((color = parse_rgbcolor(cursor, &color_length)) != NULL) {
+            color_to_mono(color, hue);
+            print_rgbcolor(color, output_file);
+            free(color);
+        } else {
+            fputc(*cursor, output_file);
+            color_length = 1;
+        }
 
-		p += len;
-	}
+        cursor += color_length;
+    }
 }
 
-static enum hues
-get_hue(int argc, char **argv)
-{
-	enum hues hue = WHITE;
+static enum hues get_hue(int argc, char **argv) {
+    enum hues hue = hue_white;
 
-	if (argc < 2)
-		return hue;
+    if (argc < 2) {
+        return hue;
+    }
 
-	if (argv[1][0] == '-') {
-		switch (argv[1][1]) {
-		case 'a':
-			hue = AMBER;
-			break;
-		case 'c':
-			hue = CYAN;
-			break;
-		case 'g':
-			hue = GREEN;
-			break;
-		case 'w':
-			hue = WHITE;
-			break;
-		}
-	}
+    if (argv[1][0] == '-') {
+        switch (argv[1][1]) {
+            case 'a':
+                hue = hue_amber;
+                break;
 
-	return hue;
+            case 'c':
+                hue = hue_cyan;
+                break;
+
+            case 'g':
+                hue = hue_green;
+                break;
+
+            case 'w':
+                hue = hue_white;
+                break;
+        }
+    }
+
+    return hue;
 }
 
-int
-main(int argc, char **argv)
-{
-	char line[MAXLINELEN];
-	enum hues hue;
+int main(int argc, char **argv) {
+    char line[MAXLINELEN];
+    enum hues hue;
 
-	hue = get_hue(argc, argv);
+    hue = get_hue(argc, argv);
 
-	while (fgets(line, sizeof(line), stdin) != NULL)
-		process_line(line, stdout, hue);
+    while (fgets(line, sizeof(line), stdin) != NULL) {
+        process_line(line, stdout, hue);
+    }
 
-	return 0;
+    return 0;
 }
