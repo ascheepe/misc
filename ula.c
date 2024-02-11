@@ -49,10 +49,10 @@ blocking_read(const char *filename, void *dest, ssize_t size)
 static void
 system_random(void *dest_ptr, size_t size)
 {
-	static uchar buf[128];
-	static uchar *pos = buf + sizeof(buf);
-	uchar *buf_end = buf + sizeof(buf);
-	uchar *dest = dest_ptr;
+	static uchar buf[128], *pos;
+	uchar *buf_end, *dest = dest_ptr;
+
+	pos = buf_end = buf + sizeof(buf);
 
 	while (size > 0) {
 		if (pos >= buf_end) {
