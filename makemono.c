@@ -89,20 +89,19 @@ parse_rgbcolor(const char *str, size_t *len)
 	if (*str != 'r')
 		return NULL;
 
-	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3) {
-		if (is_valid_rgb(r, g, b)) {
-			const char *p;
+	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3 && 
+	    is_valid_rgb(r, g, b)) {
+		const char *p;
 
-			color = xmalloc(sizeof(*color));
-			color->r = r;
-			color->g = g;
-			color->b = b;
+		color = xmalloc(sizeof(*color));
+		color->r = r;
+		color->g = g;
+		color->b = b;
 
-			p = str + sizeof("rgb(X,X,X") - 1;
-			while (*p++ != ')')
-				continue;
-			*len = p - str;
-		}
+		p = str + sizeof("rgb(X,X,X") - 1;
+		while (*p++ != ')')
+			continue;
+		*len = p - str;
 	}
 
 	return color;
