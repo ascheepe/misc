@@ -9,9 +9,9 @@ typedef unsigned char uchar;
 size_t
 compress(uchar *in, uchar *out, size_t len)
 {
-	size_t i, olen;
+	size_t i = 0, olen = 0;
 
-	for (i = olen = 0; i < len; ++i) {
+	while (i < len) {
 		uchar ch = in[i], reps = 1;
 
 		while (i + reps < len && reps < 255 && ch == in[i + reps])
@@ -21,9 +21,11 @@ compress(uchar *in, uchar *out, size_t len)
 			out[olen++] = MARKER;
 			out[olen++] = reps;
 			out[olen++] = ch;
-			i += reps - 1;
-		} else
+			i += reps;
+		} else {
 			out[olen++] = ch;
+			++i;
+		}
 	}
 
 	return olen;
@@ -32,9 +34,9 @@ compress(uchar *in, uchar *out, size_t len)
 size_t
 decompress(uchar *in, uchar *out, size_t len)
 {
-	size_t i, olen;
+	size_t i = 0, olen = 0;
 
-	for (i = olen = 0; i < len; ++i) {
+	while (i < len) {
 		uchar ch = in[i];
 
 		if (ch == MARKER) {
@@ -45,9 +47,11 @@ decompress(uchar *in, uchar *out, size_t len)
 			for (j = 0; j < reps; ++j)
 				out[olen++] = ch;
 
-			i += 2;
-		} else
+			i += 3;
+		} else {
 			out[olen++] = ch;
+			++i;
+		}
 	}
 
 	return olen;
