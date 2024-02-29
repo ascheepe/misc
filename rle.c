@@ -76,11 +76,11 @@ xfopen(const char *filename, const char *mode)
 	return fp;
 }
 
-off_t
+long
 filesize(const char *filename)
 {
 	FILE *fp;
-	off_t size;;
+	long size;;
 
 	fp = xfopen(filename, "rb");
 	fseek(fp, 0, SEEK_END);
@@ -107,7 +107,7 @@ main(int argc, char **argv)
 {
 	FILE *in, *out;
 	uchar *inbuf, *outbuf;
-	off_t fsize;
+	long fsize;
 	size_t len, nread;
 
 	if (argc != 4 || argv[1][0] == '\0') {
