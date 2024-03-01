@@ -77,7 +77,7 @@ xfopen(const char *filename, const char *mode)
 }
 
 long
-filesize(const char *filename)
+get_file_size(const char *filename)
 {
 	FILE *fp;
 	long size;;
@@ -116,7 +116,7 @@ main(int argc, char **argv)
 	}
 
 	if (argv[1][0] == 'c') {
-		fsize = filesize(argv[2]);
+		fsize = get_file_size(argv[2]);
 		in = xfopen(argv[2], "rb");
 		out = xfopen(argv[3], "wb");
 		inbuf = xmalloc(fsize);
@@ -127,7 +127,7 @@ main(int argc, char **argv)
 			fwrite(outbuf, len, 1, out);
 		}
 	} else {
-		fsize = filesize(argv[2]);
+		fsize = get_file_size(argv[2]);
 		in = xfopen(argv[2], "rb");
 		out = xfopen(argv[3], "wb");
 		inbuf = xmalloc(fsize);
