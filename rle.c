@@ -115,23 +115,22 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+	fsize = get_file_size(argv[2]);
+	in = xfopen(argv[2], "rb");
+	out = xfopen(argv[3], "wb");
+	inbuf = xmalloc(fsize);
+
 	if (argv[1][0] == 'c') {
-		fsize = get_file_size(argv[2]);
-		in = xfopen(argv[2], "rb");
-		out = xfopen(argv[3], "wb");
-		inbuf = xmalloc(fsize);
-		outbuf = xmalloc(fsize * 3); /* 0xFF, 0x01, 0xFF for each marker byte. */
+		/* each byte can expand to 3 bytes: 0xFF, 0x01, 0xFF */
+		outbuf = xmalloc(fsize * 3);
 
 		while ((nread = fread(inbuf, 1, fsize, in)) > 0) {
 			len = compress(inbuf, outbuf, nread);
 			fwrite(outbuf, len, 1, out);
 		}
 	} else {
-		fsize = get_file_size(argv[2]);
-		in = xfopen(argv[2], "rb");
-		out = xfopen(argv[3], "wb");
-		inbuf = xmalloc(fsize);
-		outbuf = xmalloc(fsize / 3 * 255); /* 3 bytes expand to 255 */
+		/* 3 bytes can expand to 255 */
+		outbuf = xmalloc(fsize / 3 * 255);
 
 		while ((nread = fread(inbuf, 1, fsize, in)) > 0) {
 			len = decompress(inbuf, outbuf, nread);
