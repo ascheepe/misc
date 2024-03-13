@@ -9,7 +9,12 @@ enum hues {
 	WHITE, AMBER, CYAN, GREEN
 };
 
-struct rgb {
+enum color_types {
+	HEXCOLOR, RGBCOLOR
+};
+
+struct color {
+	enum color_types type;
 	unsigned char r, g, b;
 };
 
@@ -27,10 +32,10 @@ xmalloc(size_t size)
 	return ptr;
 }
 
-struct rgb *
+struct color *
 parse_hexcolor(const char *str, size_t *len)
 {
-	struct rgb *color = NULL;
+	struct color *color = NULL;
 	unsigned int r, g, b;
 
 	if (*str != '#')
@@ -56,13 +61,8 @@ parse_hexcolor(const char *str, size_t *len)
 		*len = 4;
 	}
 
+	color->type = HEXCOLOR;
 	return color;
-}
-
-static void
-print_hexcolor(const struct rgb *color, FILE *fp)
-{
-	fprintf(fp, "#%02x%02x%02x", color->r, color->g, color->b);
 }
 
 static int
@@ -80,10 +80,10 @@ is_valid_rgb(int r, int g, int b)
 	return 1;
 }
 
-static struct rgb *
+static struct color *
 parse_rgbcolor(const char *str, size_t *len)
 {
-	struct rgb *color = NULL;
+	struct color *color = NULL;
 	int r, g, b;
 
 	if (*str != 'r')
@@ -94,6 +94,7 @@ parse_rgbcolor(const char *str, size_t *len)
 		const char *p;
 
 		color = xmalloc(sizeof(*color));
+		color->type = RGBCOLOR;
 		color->r = r;
 		color->g = g;
 		color->b = b;
@@ -108,14 +109,20 @@ parse_rgbcolor(const char *str, size_t *len)
 }
 
 static void
-print_rgbcolor(const struct rgb *color, FILE *fp)
+print_color(const struct color *color, FILE *fp)
 {
-	fprintf(fp, "rgb(%d, %d, %d)",
-	    color->r, color->g, color->b);
+	switch (color->type) {
+	case HEXCOLOR:
+		fprintf(fp, "#%02x%02x%02x", color->r, color->g, color->b);
+		break;
+	case RGBCOLOR:
+		fprintf(fp, "rgb(%d, %d, %d)", color->r, color->g, color->b);
+		break;
+	}
 }
 
 static void
-color_to_mono(struct rgb *color, enum hues hue)
+color_to_mono(struct color *color, enum hues hue)
 {
 	int gray;
 
@@ -157,16 +164,13 @@ process_line(const char *line, FILE *fp, enum hues hue)
 	const char *p = line;
 
 	while (*p != '\0') {
-		struct rgb *color;
+		struct color *color;
 		size_t len;
 
-		if ((color = parse_hexcolor(p, &len)) != NULL) {
+		if ((color = parse_hexcolor(p, &len)) != NULL ||
+		    (color = parse_rgbcolor(p, &len)) != NULL) {
 			color_to_mono(color, hue);
-			print_hexcolor(color, fp);
-			free(color);
-		} else if ((color = parse_rgbcolor(p, &len)) != NULL) {
-			color_to_mono(color, hue);
-			print_rgbcolor(color, fp);
+			print_color(color, fp);
 			free(color);
 		} else {
 			fputc(*p, fp);
