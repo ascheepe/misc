@@ -137,19 +137,16 @@ color_to_mono(struct color *color, enum hues hue)
 		color->g = gray;
 		color->b = gray;
 		break;
-
 	case AMBER:
 		color->r = gray;
 		color->g = (unsigned char)(gray * 191L / 255);
 		color->b = 0;
 		break;
-
 	case CYAN:
 		color->r = 0;
 		color->g = gray;
 		color->b = gray;
 		break;
-
 	case GREEN:
 		color->r = 0;
 		color->g = gray;
@@ -194,15 +191,12 @@ get_hue(int argc, char **argv)
 		case 'a':
 			hue = AMBER;
 			break;
-
 		case 'c':
 			hue = CYAN;
 			break;
-
 		case 'g':
 			hue = GREEN;
 			break;
-
 		case 'w':
 			hue = WHITE;
 			break;
