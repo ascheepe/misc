@@ -111,14 +111,21 @@ parse_rgbcolor(const char *str, size_t *len)
 static void
 print_color(const struct color *color, FILE *fp)
 {
+	char *fmt;
+
 	switch (color->type) {
 	case HEXCOLOR:
-		fprintf(fp, "#%02x%02x%02x", color->r, color->g, color->b);
+		fmt = "#%02x%02x%02x";
 		break;
 	case RGBCOLOR:
-		fprintf(fp, "rgb(%d, %d, %d)", color->r, color->g, color->b);
+		fmt = "rgb(%d, %d, %d)";
 		break;
+	default:
+		fprintf(stderr, "illegal colortype %d\n", color->type);
+		exit(1);
 	}
+
+	fprintf(fp, fmt, color->r, color->g, color->b);
 }
 
 static void
