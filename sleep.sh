@@ -1,7 +1,7 @@
 #! /bin/sh
 
 time=0
-for arg in "$@"; do
+for arg; do
 	if ! echo $arg | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
 		echo "invalid argument: $arg" >&2
 		continue
