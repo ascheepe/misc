@@ -6,10 +6,10 @@ for arg; do
 		echo "invalid argument: $arg" >&2
 		exit 1
 	fi
-	unit=$(echo $arg | tr -d '[0-9]')
-	test -z "$unit" && unit=s
-	num=$(echo $arg | tr -cd '[0-9]')
-	test -z "$num" && num=0
+
+	set -- $(echo $arg | sed 's/^\([0-9][0-9]*\)\([sSmMhH]\?\)$/\1 \2/')
+	num=${1:-0}
+	unit=${2:-s}
 
 	case $unit in
 	[sS])
