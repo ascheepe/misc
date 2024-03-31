@@ -4,7 +4,7 @@ time=0
 for arg; do
 	if ! echo $arg | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
 		echo "invalid argument: $arg" >&2
-		continue
+		exit 1
 	fi
 	unit=$(echo $arg | tr -d '[0-9]')
 	test -z "$unit" && unit=s
@@ -20,10 +20,6 @@ for arg; do
 		;;
 	[hH])
 		time=$(($time + $num * 3600))
-		;;
-	*)
-		echo "invalid unit: $unit" >&2
-		exit 1
 		;;
 	esac
 done
