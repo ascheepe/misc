@@ -1,12 +1,12 @@
 #! /bin/sh
 
-_is_invalid_argument()
+_is_valid_argument()
 {
 	if ! echo $1 | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
-		return 0
+		return 1
 	fi
 
-	return 1
+	return 0
 }
 
 _split_argument()
@@ -18,9 +18,9 @@ sleep()
 {
 	_time=0
 	for _arg; do
-		if _is_invalid_argument "$_arg"; then
+		if ! _is_valid_argument "$_arg"; then
 			echo "invalid argument: $_arg" >&2
-			return 0
+			return 1
 		fi
 
 		set -- $(_split_argument "$_arg")
