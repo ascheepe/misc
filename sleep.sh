@@ -1,27 +1,43 @@
 #! /bin/sh
 
-time=0
-for arg; do
-	if ! echo $arg | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
-		echo "invalid argument: $arg" >&2
-		exit 1
+_is_invalid_argument()
+{
+	if ! echo $1 | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
+		return 0
 	fi
 
-	set -- $(echo $arg | sed 's/^\([0-9][0-9]*\)\([sSmMhH]\?\)$/\1 \2/')
-	num=${1:-0}
-	unit=${2:-s}
+	return 1
+}
 
-	case $unit in
-	[sS])
-		time=$(($time + $num))
-		;;
-	[mM])
-		time=$(($time + $num * 60))
-		;;
-	[hH])
-		time=$(($time + $num * 3600))
-		;;
-	esac
-done
+_split_argument()
+{
+	echo $1 | sed 's/^\([0-9][0-9]*\)\([sSmMhH]\?\)$/\1 \2/'
+}
 
-sleep $time
+sleep()
+{
+	_time=0
+	for _arg; do
+		if _is_invalid_argument "$_arg"; then
+			echo "invalid argument: $_arg" >&2
+			return 0
+		fi
+
+		set -- $(_split_argument "$_arg")
+		_num=${1:-0}
+		_unit=${2:-s}
+
+		case $_unit in
+		[sS])
+			_time=$(($_time + $_num))
+			;;
+		[mM])
+			_time=$(($_time + $_num * 60))
+			;;
+		[hH])
+			_time=$(($_time + $_num * 3600))
+			;;
+		esac
+	done
+	command sleep $_time
+}
