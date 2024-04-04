@@ -7,7 +7,7 @@ sleep()
 
 	for arg; do
 		if ! echo $arg | grep -q '^[0-9][0-9]*[sSmMhH]\?$'; then
-			echo "sleep: invalid time unit '$arg'" >&2
+			echo "sleep: invalid time interval '$arg'" >&2
 			return 1
 		fi
 
