@@ -163,7 +163,7 @@ color_to_mono(struct color *color, enum hues hue)
 }
 
 static void
-process_line(const char *line, FILE *fp, enum hues hue)
+make_mono(const char *line, FILE *fp, enum hues hue)
 {
 	const char *p = line;
 
@@ -222,7 +222,7 @@ main(int argc, char **argv)
 	hue = get_hue(argc, argv);
 
 	while (fgets(line, sizeof(line), stdin) != NULL)
-		process_line(line, stdout, hue);
+		make_mono(line, stdout, hue);
 
 	return 0;
 }
