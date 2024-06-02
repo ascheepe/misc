@@ -143,10 +143,8 @@ main(int argc, char **argv)
 	if (argc > 1) {
 		if (strcmp(argv[1], "-4") == 0)
 			do_ipv4();
-
 		else if (strcmp(argv[1], "-6") == 0)
 			do_ipv6();
-
 		else {
 			puts("usage: ula [-4|-6]");
 			return 1;
