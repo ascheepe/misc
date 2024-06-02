@@ -21,7 +21,7 @@ typedef uint ipv4_address;
  * about it.
  */
 static void
-blocking_read(const char *filename, void *dest, ssize_t size)
+blocking_read(const char *filename, void *dst, ssize_t size)
 {
 	ssize_t nread;
 	int fd;
@@ -32,7 +32,7 @@ blocking_read(const char *filename, void *dest, ssize_t size)
 		exit(1);
 	}
 
-	while ((nread = read(fd, dest, size)) != size) {
+	while ((nread = read(fd, dst, size)) != size) {
 		if (nread == -1 && errno != EAGAIN) {
 			perror("blocking_read");
 			exit(1);
@@ -47,10 +47,10 @@ blocking_read(const char *filename, void *dest, ssize_t size)
  * Get nbytes of random data from the system.
  */
 static void
-system_random(void *dest_ptr, size_t size)
+system_random(void *dst_ptr, size_t size)
 {
 	static uchar buf[128], *pos;
-	uchar *buf_end, *dest = dest_ptr;
+	uchar *buf_end, *dst = dst_ptr;
 
 	pos = buf_end = buf + sizeof(buf);
 
@@ -61,14 +61,14 @@ system_random(void *dest_ptr, size_t size)
 		}
 
 		if (pos + size <= buf_end) {
-			memcpy(dest, pos, size);
+			memcpy(dst, pos, size);
 			pos += size;
 			size = 0;
 		} else {
 			size_t len = buf_end - pos;
 
-			memcpy(dest, pos, len);
-			dest += len;
+			memcpy(dst, pos, len);
+			dst += len;
 			pos += len;
 			size -= len;
 		}
