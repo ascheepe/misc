@@ -80,7 +80,7 @@ long
 get_file_size(const char *filename)
 {
 	FILE *fp;
-	long size;;
+	long size;
 
 	fp = xfopen(filename, "rb");
 	fseek(fp, 0, SEEK_END);
