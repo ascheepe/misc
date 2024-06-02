@@ -32,7 +32,7 @@ blocking_read(const char *filename, void *dest, ssize_t size)
 		exit(1);
 	}
 
-	while ((nread = read(fd, dest, size)) != (ssize_t) size) {
+	while ((nread = read(fd, dest, size)) != size) {
 		if (nread == -1 && errno != EAGAIN) {
 			perror("blocking_read");
 			exit(1);
