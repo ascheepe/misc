@@ -73,9 +73,7 @@ err:
 static int
 is_valid_rgb(int r, int g, int b)
 {
-	if (r < 0 || r > 255 ||
-	    g < 0 || g > 255 ||
-	    b < 0 || b > 255) {
+	if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
 		fprintf(stderr,
 		    "WARNING: invalid color rgb(%d, %d, %d) found.\n",
 		    r, g, b);
