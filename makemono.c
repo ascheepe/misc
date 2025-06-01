@@ -38,23 +38,24 @@ parse_hexcolor(const char *str, size_t *len)
 	struct color *color = NULL;
 	unsigned int r, g, b;
 
-	if (*str != '#')
+	if (*str != '#' || len == NULL)
 		return NULL;
+
+	color = xmalloc(sizeof(*color));
+	*len = 0;
 
 	if (sscanf(str, "#%02x%02x%02x", &r, &g, &b) == 3) {
 		if (!(isspace(str[7]) || str[7] == '\0'))
-			return NULL;
+			goto err;
 
-		color = xmalloc(sizeof(*color));
 		color->r = r;
 		color->g = g;
 		color->b = b;
 		*len = 7;
 	} else if (sscanf(str, "#%1x%1x%1x", &r, &g, &b) == 3) {
 		if (!(isspace(str[4]) || str[4] == '\0'))
-			return NULL;
+			goto err;
 
-		color = xmalloc(sizeof(*color));
 		color->r = 16 * r + r;
 		color->g = 16 * g + g;
 		color->b = 16 * b + b;
@@ -63,6 +64,10 @@ parse_hexcolor(const char *str, size_t *len)
 
 	color->type = HEXCOLOR;
 	return color;
+
+err:
+	free(color);
+	return NULL;
 }
 
 static int
