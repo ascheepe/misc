@@ -157,6 +157,10 @@ main(void)
 	int x, y;
 
 	pnm_readpaminit(stdin, &inpam, PAM_STRUCT_SIZE(tuple_type));
+	if (inpam.depth < 3) {
+		fprintf(stderr, "input should have at least a depth of 3.");
+		exit(1);
+	}
 	outpam = inpam;
 	outpam.file = stdout;
 	pnm_writepaminit(&outpam);
