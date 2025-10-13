@@ -150,12 +150,13 @@ clamp(int *c)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
 	struct pam inpam, outpam;
 	tuple *row;
 	int x, y;
 
+	pnm_init(&argc, argv);
 	pnm_readpaminit(stdin, &inpam, PAM_STRUCT_SIZE(tuple_type));
 	if (inpam.depth < 3) {
 		fprintf(stderr, "input should have at least a depth of 3.");
