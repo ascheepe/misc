@@ -147,7 +147,7 @@ main(int argc, char **argv)
 	pnm_init(&argc, argv);
 	pnm_readpaminit(stdin, &inpam, PAM_STRUCT_SIZE(tuple_type));
 	if (inpam.color_depth < 3) {
-		fprintf(stderr, "input should have at least a depth of 3.");
+		fprintf(stderr, "input should have at least a depth of 3.\n");
 		exit(1);
 	}
 	outpam = inpam;
