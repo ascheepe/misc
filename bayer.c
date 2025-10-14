@@ -144,9 +144,10 @@ main(int argc, char **argv)
 	tuple *row;
 	int x, y;
 
+	(void) argc;
 	pm_init(argv[0], 0);
 	pnm_readpaminit(stdin, &inpam, PAM_STRUCT_SIZE(tuple_type));
-	if (inpam.color_depth < 3) {
+	if (inpam.depth < 3) {
 		fprintf(stderr, "input should have at least a depth of 3.\n");
 		exit(1);
 	}
