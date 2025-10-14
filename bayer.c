@@ -4,6 +4,8 @@
 
 #include <netpbm/pam.h>
 
+typedef unsigned int uint;
+
 enum RGB { R, G, B };
 
 #if 0 /* CGA Palette 0 low intensity */
@@ -135,20 +137,6 @@ pick(int *c)
 	return match;
 }
 
-static void
-clamp(int *c)
-{
-	int i;
-
-	for (i = 0; i < 3; ++i) {
-		if (c[i] < 0)
-			c[i] = 0;
-
-		if (c[i] > 255)
-			c[i] = 255;
-	}
-}
-
 int
 main(int argc, char **argv)
 {
@@ -172,12 +160,17 @@ main(int argc, char **argv)
 		for (x = 0; x < inpam.width; ++x) {
 			int c[3];
 			int i, v;
+			uint cv;
 
 			v = bayer[y & 7][x & 7];
-			c[R] = row[x][R] + row[x][R] * v / 64;
-			c[G] = row[x][G] + row[x][G] * v / 64;
-			c[B] = row[x][B] + row[x][B] * v / 64;
-			clamp(c);
+			cv = row[x][R] + row[x][R] * v / 64;
+			c[R] = cv > 255 ? 255 : cv;
+
+			cv = row[x][G] + row[x][G] * v / 64;
+			c[G] = cv > 255 ? 255 : cv;
+
+			cv = row[x][B] + row[x][B] * v / 64;
+			c[B] = cv > 255 ? 255 : cv;
 
 			i = pick(c);
 			row[x][R] = palette[i][R];
