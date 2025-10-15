@@ -111,22 +111,18 @@ pick(int *c)
 	for (i = 0; i < PALETTE_SIZE; ++i) {
 		int diff[3];
 		int dist;
-		int r, rf, bf;
+		int f[3] = { 3, 4, 2 };
 
 		diff[R] = abs(c[R] - palette[i][R]);
 		diff[G] = abs(c[G] - palette[i][G]);
 		diff[B] = abs(c[B] - palette[i][B]);
 
-		r = (c[R] + palette[i][R]) / 2;
-		if (r < 128) {
-			rf = 2;
-			bf = 3;
-		} else {
-			rf = 3;
-			bf = 2;
+		if ((c[R] + palette[i][R]) / 2 < 128) {
+			f[R] = 2;
+			f[B] = 3;
 		}
 
-		dist = rf * diff[R] + 4 * diff[G] + bf * diff[B];
+		dist = f[R] * diff[R] + f[G] * diff[G] + f[B] * diff[B];
 
 		if (dist < maxdist) {
 			maxdist = dist;
