@@ -109,7 +109,7 @@ pick(int *c)
 	int i;
 
 	for (i = 0; i < PALETTE_SIZE; ++i) {
-		int weight[3] = { 3, 4, 2 };
+		int w[3] = { 3, 4, 2 };
 		int diff[3];
 		int dist;
 
@@ -118,13 +118,11 @@ pick(int *c)
 		diff[B] = abs(c[B] - palette[i][B]);
 
 		if ((c[R] + palette[i][R]) / 2 < 128) {
-			weight[R] = 2;
-			weight[B] = 3;
+			w[R] = 2;
+			w[B] = 3;
 		}
 
-		dist = weight[R] * diff[R] + weight[G] * diff[G] +
-		    weight[B] * diff[B];
-
+		dist = w[R] * diff[R] + w[G] * diff[G] + w[B] * diff[B];
 		if (dist < maxdist) {
 			maxdist = dist;
 			match = i;
