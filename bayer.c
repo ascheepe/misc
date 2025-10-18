@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <limits.h>
-#include <unistd.h>
 
 #include <netpbm/pam.h>
 
@@ -11,66 +8,87 @@ typedef unsigned int uint;
 
 enum RGB { R, G, B };
 
-int cga0l_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x00, 0xaa, 0x00,
-	0xaa, 0x00, 0x00,
-	0xaa, 0x55, 0x00,
+#if 0 /* CGA Palette 0 low intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x00, 0xaa, 0x00 },
+	{ 0xaa, 0x00, 0x00 },
+	{ 0xaa, 0x55, 0x00 },
 };
+#endif
 
-int cga0h_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x55, 0xff, 0x55,
-	0xff, 0x55, 0x55,
-	0xff, 0xff, 0x55,
+#if 0 /* CGA Palette 0 high intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x55, 0xff, 0x55 },
+	{ 0xff, 0x55, 0x55 },
+	{ 0xff, 0xff, 0x55 },
 };
+#endif
 
-int cga1l_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x00, 0xaa, 0xaa,
-	0xaa, 0x00, 0xaa,
-	0xaa, 0xaa, 0xaa,
+#if 0 /* CGA Palette 1 low intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x00, 0xaa, 0xaa },
+	{ 0xaa, 0x00, 0xaa },
+	{ 0xaa, 0xaa, 0xaa },
 };
+#endif
 
-int cga1h_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x55, 0xff, 0xff,
-	0xff, 0x55, 0xff,
-	0xff, 0xff, 0xff,
+#if 0 /* CGA Palette 1 high intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x55, 0xff, 0xff },
+	{ 0xff, 0x55, 0xff },
+	{ 0xff, 0xff, 0xff },
 };
+#endif
 
-int mode5l_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x00, 0xaa, 0xaa,
-	0xaa, 0x00, 0x00,
-	0xaa, 0xaa, 0xaa,
+#if 1 /* CGA Mode5 low intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x00, 0xaa, 0xaa },
+	{ 0xaa, 0x00, 0x00 },
+	{ 0xaa, 0xaa, 0xaa },
 };
+#endif
 
-int mode5h_palette[4 * 3] = {
-	0x00, 0x00, 0x00,
-	0x55, 0xff, 0xff,
-	0xff, 0x55, 0x55,
-	0xff, 0xff, 0xff,
+#if 0 /* CGA Mode5 high intensity */
+#define PALETTE_SIZE 4
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x55, 0xff, 0xff },
+	{ 0xff, 0x55, 0x55 },
+	{ 0xff, 0xff, 0xff },
 };
+#endif
 
-int cga_full_palette[16 * 3] = {
-	0x00, 0x00, 0x00,
-	0x00, 0x00, 0xaa,
-	0x00, 0xaa, 0x00,
-	0x00, 0xaa, 0xaa,
-	0xaa, 0x00, 0x00,
-	0xaa, 0x00, 0xaa,
-	0xaa, 0x55, 0x00,
-	0xaa, 0xaa, 0xaa,
-	0x55, 0x55, 0x55,
-	0x55, 0x55, 0xff,
-	0x55, 0xff, 0x55,
-	0x55, 0xff, 0xff,
-	0xff, 0x55, 0x55,
-	0xff, 0x55, 0xff,
-	0xff, 0xff, 0x55,
-	0xff, 0xff, 0xff,
+#if 0 /* CGA Full palette */
+#define PALETTE_SIZE 16
+int palette[PALETTE_SIZE][3] = {
+	{ 0x00, 0x00, 0x00 },
+	{ 0x00, 0x00, 0xaa },
+	{ 0x00, 0xaa, 0x00 },
+	{ 0x00, 0xaa, 0xaa },
+	{ 0xaa, 0x00, 0x00 },
+	{ 0xaa, 0x00, 0xaa },
+	{ 0xaa, 0x55, 0x00 },
+	{ 0xaa, 0xaa, 0xaa },
+	{ 0x55, 0x55, 0x55 },
+	{ 0x55, 0x55, 0xff },
+	{ 0x55, 0xff, 0x55 },
+	{ 0x55, 0xff, 0xff },
+	{ 0xff, 0x55, 0x55 },
+	{ 0xff, 0x55, 0xff },
+	{ 0xff, 0xff, 0x55 },
+	{ 0xff, 0xff, 0xff },
 };
+#endif
 
 int bayer[8][8] = {
 	{  0, 32,  8, 40,  2, 34, 10, 42 },
@@ -84,24 +102,22 @@ int bayer[8][8] = {
 };
 
 static int
-pick(int *c, int *palette, int len)
+pick(int *c)
 {
 	int maxdist = INT_MAX;
 	int match = 0;
 	int i;
 
-	for (i = 0; i < len; ++i) {
+	for (i = 0; i < PALETTE_SIZE; ++i) {
 		int w[3] = { 3, 4, 2 };
 		int diff[3];
 		int dist;
-		int *pal;
 
-		pal = &palette[i * 3];
-		diff[R] = abs(c[R] - pal[R]);
-		diff[G] = abs(c[G] - pal[G]);
-		diff[B] = abs(c[B] - pal[B]);
+		diff[R] = abs(c[R] - palette[i][R]);
+		diff[G] = abs(c[G] - palette[i][G]);
+		diff[B] = abs(c[B] - palette[i][B]);
 
-		if ((c[R] + pal[R]) / 2 < 128) {
+		if ((c[R] + palette[i][R]) / 2 < 128) {
 			w[R] = 2;
 			w[B] = 3;
 		}
@@ -116,81 +132,14 @@ pick(int *c, int *palette, int len)
 	return match;
 }
 
-char *
-strtolower(char *s)
-{
-	char *p = s;
-
-	while (*p) {
-		*p = tolower(*p);
-		++p;
-	}
-
-	return s;
-}
-
-char *
-xstrdup(char *s)
-{
-	char *t;
-	size_t sz;
-
-	sz = strlen(s) + 1;
-	t = malloc(sz);
-	if (t == NULL) {
-		fprintf(stderr, "xstrdup: no more memory.\n");
-		exit(1);
-	}
-	memcpy(t, s, sz);
-
-	return t;
-}
-
 int
 main(int argc, char **argv)
 {
 	struct pam inpam, outpam;
 	tuple *row;
 	int x, y;
-	char *palette_name = "cga_full";
-	int *palette = cga_full_palette;
-	int len = 16;
-	int opt;
 
-	while ((opt = getopt(argc, argv, "p:")) != -1) {
-		switch (opt) {
-		case 'p':
-			palette_name = strtolower(xstrdup(optarg));
-			break;
-		default:
-			fprintf(stderr, "usage: %s [-p palette_name]\n", argv[0]);
-			exit(1);
-		}
-	}
-
-	if (strcmp(palette_name, "cga0l") == 0) {
-		palette = cga0l_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "cga0h") == 0) {
-		palette = cga0h_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "cga1l") == 0) {
-		palette = cga1l_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "cga1h") == 0) {
-		palette = cga1h_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "mode5l") == 0) {
-		palette = mode5l_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "mode5h") == 0) {
-		palette = mode5h_palette;
-		len = 4;
-	} else if (strcmp(palette_name, "cga_full") == 0) {
-		palette = cga_full_palette;
-		len = 16;
-	}
-
+	(void) argc;
 	pm_init(argv[0], 0);
 	pnm_readpaminit(stdin, &inpam, PAM_STRUCT_SIZE(tuple_type));
 	if (inpam.depth < 3) {
@@ -206,25 +155,22 @@ main(int argc, char **argv)
 		pnm_readpamrow(&inpam, row);
 		for (x = 0; x < inpam.width; ++x) {
 			int c[3];
-			int *pal;
 			int i;
-			uint bv, cv;
+			uint cv;
 
-			bv = bayer[y & 7][x & 7];
-			cv = row[x][R] + row[x][R] * bv / 64;
+			cv = row[x][R] + row[x][R] * bayer[y & 7][x & 7] / 64;
 			c[R] = cv > 255 ? 255 : cv;
 
-			cv = row[x][G] + row[x][G] * bv / 64;
+			cv = row[x][G] + row[x][G] * bayer[y & 7][x & 7] / 64;
 			c[G] = cv > 255 ? 255 : cv;
 
-			cv = row[x][B] + row[x][B] * bv / 64;
+			cv = row[x][B] + row[x][B] * bayer[y & 7][x & 7] / 64;
 			c[B] = cv > 255 ? 255 : cv;
 
-			i = pick(c, palette, len);
-			pal = &palette[i * 3];
-			row[x][R] = pal[R];
-			row[x][G] = pal[G];
-			row[x][B] = pal[B];
+			i = pick(c);
+			row[x][R] = palette[i][R];
+			row[x][G] = palette[i][G];
+			row[x][B] = palette[i][B];
 		}
 		pnm_writepamrow(&outpam, row);
 	}
