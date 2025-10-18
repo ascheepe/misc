@@ -155,17 +155,17 @@ main(int argc, char **argv)
 		pnm_readpamrow(&inpam, row);
 		for (x = 0; x < inpam.width; ++x) {
 			int c[3];
-			int i, v;
-			uint cv;
+			int i;
+			uint bv, cv;
 
-			v = bayer[y & 7][x & 7];
-			cv = row[x][R] + row[x][R] * v / 64;
+			bv = bayer[y & 7][x & 7];
+			cv = row[x][R] + row[x][R] * bv / 64;
 			c[R] = cv > 255 ? 255 : cv;
 
-			cv = row[x][G] + row[x][G] * v / 64;
+			cv = row[x][G] + row[x][G] * bv / 64;
 			c[G] = cv > 255 ? 255 : cv;
 
-			cv = row[x][B] + row[x][B] * v / 64;
+			cv = row[x][B] + row[x][B] * bv / 64;
 			c[B] = cv > 255 ? 255 : cv;
 
 			i = pick(c);
