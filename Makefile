@@ -6,3 +6,5 @@ CFLAGS+= -D_DEFAULT_SOURCE
 
 bayer:	bayer.c
 	$(CC) $(CFLAGS) -o bayer bayer.c -lnetpbm
+atkinson:	atkinson.c
+	$(CC) $(CFLAGS) -o atkinson atkinson.c -lnetpbm
