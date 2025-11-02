@@ -12,8 +12,8 @@ int
 main(int argc, char **argv)
 {
 	struct pam inpam;
-	tuple *row;
-	bit *outrow;
+	tuple *row = NULL;
+	bit *outrow = NULL;
 	int *err = NULL;
 	int cols, width, height;
 	int x, y;
@@ -61,7 +61,8 @@ main(int argc, char **argv)
 
 			/* Compute grayscale intensity */
 			Y = row[x][R] * 21 / 100 +
-			    row[x][G] * 72 / 100 + row[x][B] * 7 / 100;
+			    row[x][G] * 72 / 100 +
+			    row[x][B] *  7 / 100;
 
 			Y += err[i0 * cols + idx];
 

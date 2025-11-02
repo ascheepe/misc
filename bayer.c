@@ -136,7 +136,7 @@ int
 main(int argc, char **argv)
 {
 	struct pam inpam, outpam;
-	tuple *row;
+	tuple *row = NULL;
 	int x, y;
 
 	(void) argc;
