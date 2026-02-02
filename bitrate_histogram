@@ -1,0 +1,71 @@
+#! /bin/sh
+#
+# Script to show a bitrate histogram for a given video file.
+#
+
+input_file="$1"
+output_file="$2"
+
+die() {
+    printf "%s\n" "$*" >&2
+    exit 1;
+}
+
+[ -z "$input_file"  ] && die "No input file provided."
+[ -z "$output_file" ] && die "No output file provided."
+[ -e "$output_file" ] && die "Output $output_file already exists."
+
+set -eu
+
+datafile=$(mktemp)
+trap 'rm $datafile' EXIT INT TERM
+
+ffprobe -loglevel error \
+        -select_streams v:0 \
+        -show_packets \
+        -show_entries packet=pts_time,dts_time,size \
+        -of csv=p=0 "$input_file" \
+    | awk -F, -v binwidth=50 '
+{
+    t = ($1 != "N/A") ? $1 : $2;
+
+    if (t == "N/A") {
+        next;
+    }
+
+    # Dts time might be negative
+    if (!is_t0_set) {
+        t0 = t;
+        is_t0_set = 1;
+    }
+
+    second = int(t - t0);
+    bytes[second] += $3;
+}
+
+END {
+    for (second in bytes) {
+        kilobits = bytes[second] * 8 / 1000;
+        bin = int(kilobits / binwidth) * binwidth + binwidth / 2;
+        count[bin]++;
+    }
+
+    for (bin in count) {
+        printf "%d %d\n", bin, count[bin];
+    }
+}' | sort -n > "$datafile"
+# The sorting after awk is *NEEDED* because a hash is not sorted per it's
+# definition so the order of the for loop is not defined.
+
+gnuplot <<EOF
+set terminal svg size 1024,768 dynamic
+set output "$output_file"
+set title "Bitrate histogram for\n$input_file"
+set xlabel "Bitrate (kilobits/second)"
+set ylabel "Time (seconds)"
+set boxwidth 100
+set style fill solid
+set grid ytics
+set xrange [0:*]
+plot "$datafile" using 1:2 with boxes notitle lt rgb "black"
+EOF
