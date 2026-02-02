@@ -1,0 +1,132 @@
+#! /bin/sh
+
+input_filename="$1"
+output_filename="$2"
+
+set -eu
+
+die() {
+    printf "%s\n" "$*" >&2
+    exit 1
+}
+
+test -n "$input_filename"  || die "No input filename provided."
+test -f "$input_filename"  || die "Input file does not exist."
+test -n "$output_filename" || die "No output filename provided."
+
+# Container settings
+#------------------------------------------------------------------------------
+available_size_mb=700
+container_overhead_percent=1
+
+# Doublespeed cdrom ~ 2.4MBit
+average_video_bitrate_k=1500
+max_video_bitrate_k=2000
+video_buffer_size_k=$(( 384 * 8 ))
+
+# Get video information
+#------------------------------------------------------------------------------
+duration_sec=$(ffprobe -v error -show_entries format=duration -of csv=p=0 \
+                       "$input_filename" | cut -d, -f 1 | cut -d. -f1)
+test -n "$duration_sec" || die "Can't get video duration."
+
+# Round video duration upwards
+duration_sec=$(( duration_sec + 1 ))
+
+old_ifs=$IFS
+IFS=, read -r video_width video_height <<EOF
+$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height \
+          -of csv=p=0 "$input_filename")
+EOF
+IFS=$old_ifs
+
+test -n "$video_width" || die "Can't get video width (no video stream?)."
+test -n "$video_height" || die "Can't get video height (no video stream?)."
+test "$video_height" -gt 0 || die "Invalid video height."
+if [ "$container_overhead_percent" -lt 1 ]; then
+    die "Can't set container overhead so low."
+fi
+
+# Setup bitrates
+#------------------------------------------------------------------------------
+audio_bitrate_k=128
+overhead_factor=$(( 100 - container_overhead_percent ))
+available_bits=$(( available_size_mb * 8192 * overhead_factor / 100 ))
+video_bitrate_k=$(( available_bits / duration_sec - audio_bitrate_k ))
+
+output_width=640
+
+# Use lower resolutions for very low bitrates.
+if [ "$video_bitrate_k" -lt "500" ]; then
+    output_width=320
+elif [ "$video_bitrate_k" -lt "700" ]; then
+    output_width=512
+fi
+
+# Cap bitrate to a supported value.
+if [ "$video_bitrate_k" -gt "$average_video_bitrate_k" ]; then
+    printf "==> Average video bitrate of %dk is too high, lowering to %dk\n" \
+           "$video_bitrate_k" "$average_video_bitrate_k" >&2
+    video_bitrate_k="$average_video_bitrate_k"
+fi
+
+# Setup aspect ratio
+#------------------------------------------------------------------------------
+round_to_next_16() {
+    echo $(( ($1 + 15) / 16 * 16 ))
+}
+
+fixed_point_scale=100
+aspect_ratio=$(( video_width * fixed_point_scale / video_height ))
+output_height=$(( output_width * fixed_point_scale / aspect_ratio ))
+output_height=$( round_to_next_16 $output_height )
+resolution="${output_width}:${output_height}"
+
+if [ "$output_width" -lt 640 ]; then
+    printf "==> Video bitrate of %dk is too low,\n" "$video_bitrate_k" >&2
+    printf "==> lowering resolution to %dx%d.\n" \
+        "$output_width" "$output_height" >&2
+fi
+
+video_filter="-vf scale=${resolution}:flags=lanczos"
+video_filter="${video_filter}:force_original_aspect_ratio=decrease"
+video_filter="${video_filter},pad=${resolution}:(ow-iw)/2:(oh-ih)/2"
+
+# Setup command and run the conversion
+#------------------------------------------------------------------------------
+total_bitrate_k=$(( video_bitrate_k + audio_bitrate_k ))
+printf "==> Converting %s to %s:\n" "$input_filename" "$output_filename"
+printf "==> %dx%dk @ %dk\n" "$output_width" "$output_height" "$total_bitrate_k"
+
+common_options="-loglevel error -stats"
+
+video_options="$video_filter -c:v libxvid"
+video_options="$video_options -b:v ${video_bitrate_k}k"
+video_options="$video_options -maxrate:v ${max_video_bitrate_k}k"
+video_options="$video_options -bufsize:v ${video_buffer_size_k}k"
+video_options="$video_options -me_quality 6"
+video_options="$video_options -bf 1 -g 120 -pix_fmt yuv420p -f avi"
+
+# These are not very safe options but do increase quality.
+#video_options="$video_options -mbd rd -trellis 2 -flags +mv4+aic"
+#video_options="$video_options -variance_aq 1"
+
+audio_options="-c:a libmp3lame -ar 44100 -ac 2 -b:a 128k"
+audio_options="$audio_options -af acompressor,loudnorm=I=-16:LRA=11:TP=-1.5"
+
+# shellcheck disable=SC2086
+ffmpeg $common_options -i "${input_filename}" \
+       $video_options -an -pass 1 -y /dev/null
+
+# shellcheck disable=SC2086
+ffmpeg $common_options -i "${input_filename}" \
+       $video_options $audio_options -pass 2 -y "${output_filename}"
+
+rm -f ffmpeg2pass-0.log*
+
+printf "==> Unpacking b-frames\n"
+temp_file=$(mktemp)
+# shellcheck disable=SC2086
+ffmpeg $common_options -i "${output_filename}" -c copy \
+       -bsf:v mpeg4_unpack_bframes -f avi -y "${temp_file}"
+mv -f "${temp_file}" "${output_filename}"
