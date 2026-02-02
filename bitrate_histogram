@@ -29,10 +29,6 @@ ffprobe -loglevel error \
 {
     t = ($1 != "N/A") ? $1 : $2;
 
-    if (t == "N/A") {
-        next;
-    }
-
     # Dts time might be negative
     if (!is_t0_set) {
         t0 = t;
