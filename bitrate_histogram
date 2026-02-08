@@ -17,8 +17,8 @@ die() {
 
 set -eu
 
-datafile=$(mktemp)
-trap 'rm $datafile' EXIT INT TERM
+gnuplot_data_file=$(mktemp)
+trap 'rm $gnuplot_data_file' EXIT INT TERM
 
 ffprobe -loglevel error \
         -select_streams v:0 \
@@ -49,7 +49,7 @@ END {
     for (bin in count) {
         printf "%d %d\n", bin, count[bin];
     }
-}' | sort -n > "$datafile"
+}' | sort -n > "$gnuplot_data_file"
 # The sorting after awk is *NEEDED* because a hash is not sorted per it's
 # definition so the order of the for loop is not defined.
 
@@ -63,5 +63,5 @@ set boxwidth 100
 set style fill solid
 set grid ytics
 set xrange [0:*]
-plot "$datafile" using 1:2 with boxes notitle lt rgb "black"
+plot "$gnuplot_data_file" using 1:2 with boxes notitle lt rgb "black"
 EOF
