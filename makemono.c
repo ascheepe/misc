@@ -92,7 +92,7 @@ parse_rgbcolor(const char *str, size_t *len)
 	if (*str != 'r')
 		return NULL;
 
-	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3 && 
+	if (sscanf(str, "rgb(%d, %d, %d)", &r, &g, &b) == 3 &&
 	    is_valid_rgb(r, g, b)) {
 		const char *p;
 
