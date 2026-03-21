@@ -6,8 +6,8 @@ output_filename="$2"
 set -eu
 
 die() {
-    printf "%s\n" "$*" >&2
-    exit 1
+  printf "%s\n" "$*" >&2
+  exit 1
 }
 
 test -n "$input_filename"  || die "No input filename provided."
@@ -44,7 +44,7 @@ test -n "$video_width" || die "Can't get video width (no video stream?)."
 test -n "$video_height" || die "Can't get video height (no video stream?)."
 test "$video_height" -gt 0 || die "Invalid video height."
 if [ "$container_overhead_percent" -lt 1 ]; then
-    die "Can't set container overhead so low."
+  die "Can't set container overhead so low."
 fi
 
 # Setup bitrates
@@ -58,22 +58,22 @@ output_width=640
 
 # Use lower resolutions for very low bitrates.
 if [ "$video_bitrate_k" -lt "500" ]; then
-    output_width=320
+  output_width=320
 elif [ "$video_bitrate_k" -lt "700" ]; then
-    output_width=512
+  output_width=512
 fi
 
 # Cap bitrate to a supported value.
 if [ "$video_bitrate_k" -gt "$average_video_bitrate_k" ]; then
-    printf "==> Average video bitrate of %dk is too high, lowering to %dk\n" \
-           "$video_bitrate_k" "$average_video_bitrate_k" >&2
-    video_bitrate_k="$average_video_bitrate_k"
+  printf "==> Average video bitrate of %dk is too high, lowering to %dk\n" \
+         "$video_bitrate_k" "$average_video_bitrate_k" >&2
+  video_bitrate_k="$average_video_bitrate_k"
 fi
 
 # Setup aspect ratio
 #------------------------------------------------------------------------------
 round_to_next_16() {
-    echo $(( ($1 + 15) / 16 * 16 ))
+  echo $(( ($1 + 15) / 16 * 16 ))
 }
 
 fixed_point_scale=100
@@ -83,9 +83,9 @@ output_height=$( round_to_next_16 $output_height )
 resolution="${output_width}:${output_height}"
 
 if [ "$output_width" -lt 640 ]; then
-    printf "==> Video bitrate of %dk is too low,\n" "$video_bitrate_k" >&2
-    printf "==> lowering resolution to %dx%d.\n" \
-        "$output_width" "$output_height" >&2
+  printf "==> Video bitrate of %dk is too low,\n" "$video_bitrate_k" >&2
+  printf "==> lowering resolution to %dx%d.\n" \
+         "$output_width" "$output_height" >&2
 fi
 
 video_filter="-vf scale=${resolution}:flags=lanczos"
