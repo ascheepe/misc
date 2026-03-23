@@ -27,7 +27,7 @@ video_buffer_size_k=$(( 384 * 8 ))
 # Get video information
 #------------------------------------------------------------------------------
 duration_sec=$(ffprobe -v error -show_entries format=duration -of csv=p=0 \
-                       "$input_filename" | cut -d, -f 1 | cut -d. -f1)
+    "$input_filename" | cut -d, -f 1 | cut -d. -f1)
 test -n "$duration_sec" || die "Can't get video duration."
 
 # Round video duration upwards
@@ -36,7 +36,7 @@ duration_sec=$(( duration_sec + 1 ))
 old_ifs=$IFS
 IFS=, read -r video_width video_height <<EOF
 $(ffprobe -v error -select_streams v:0 -show_entries stream=width,height \
-          -of csv=p=0 "$input_filename")
+    -of csv=p=0 "$input_filename")
 EOF
 IFS=$old_ifs
 
@@ -66,7 +66,7 @@ fi
 # Cap bitrate to a supported value.
 if [ "$video_bitrate_k" -gt "$average_video_bitrate_k" ]; then
     printf "==> Average video bitrate of %dk is too high, lowering to %dk\n" \
-           "$video_bitrate_k" "$average_video_bitrate_k" >&2
+        "$video_bitrate_k" "$average_video_bitrate_k" >&2
     video_bitrate_k="$average_video_bitrate_k"
 fi
 
@@ -116,11 +116,11 @@ audio_options="$audio_options -af acompressor,loudnorm=I=-16:LRA=11:TP=-1.5"
 
 # shellcheck disable=SC2086
 ffmpeg $common_options -i "${input_filename}" \
-       $video_options -an -pass 1 -y /dev/null
+    $video_options -an -pass 1 -y /dev/null
 
 # shellcheck disable=SC2086
 ffmpeg $common_options -i "${input_filename}" \
-       $video_options $audio_options -pass 2 -y "${output_filename}"
+    $video_options $audio_options -pass 2 -y "${output_filename}"
 
 rm -f ffmpeg2pass-0.log*
 
@@ -128,5 +128,5 @@ printf "==> Unpacking b-frames\n"
 temp_file=$(mktemp)
 # shellcheck disable=SC2086
 ffmpeg $common_options -i "${output_filename}" -c copy \
-       -bsf:v mpeg4_unpack_bframes -f avi -y "${temp_file}"
+    -bsf:v mpeg4_unpack_bframes -f avi -y "${temp_file}"
 mv -f "${temp_file}" "${output_filename}"
