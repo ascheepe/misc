@@ -43,8 +43,9 @@ IFS=$old_ifs
 test -n "$video_width" || die "Can't get video width (no video stream?)."
 test -n "$video_height" || die "Can't get video height (no video stream?)."
 test "$video_height" -gt 0 || die "Invalid video height."
-if [ "$container_overhead_percent" -lt 1 ]; then
-  die "Can't set container overhead so low."
+if [ "$container_overhead_percent" -lt 1 -o
+     "$container_overhead_percent" -gt 99 ]; then
+  die "Invalid container overhead value."
 fi
 
 # Setup bitrates
