@@ -108,7 +108,7 @@ video_options="$video_options -maxrate:v ${max_video_bitrate_k}k"
 video_options="$video_options -bufsize:v ${video_buffer_size_k}k"
 video_options="$video_options -me_quality 6"
 video_options="$video_options -trellis 1 -flags +mv4"
-video_options="$video_options -bf 2 -g 120 -vtag XVID -pix_fmt yuv420p -f avi"
+video_options="$video_options -bf 1 -g 120 -vtag XVID -pix_fmt yuv420p -f avi"
 
 # These are not very safe options but do increase quality.
 #video_options="$video_options -mbd rd -flags +aic"
